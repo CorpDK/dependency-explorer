@@ -46,18 +46,21 @@ The system has three mandatory layers:
     ├── index.html     # Main HTML page
     ├── styles.css     # Stylesheet
     ├── app.js         # Application logic (DependencyGraph class)
-    └── graph.json     # Generated dependency data
+    └── data/          # Data files directory
+        ├── graph.json # Generated dependency data
+        └── files.json # List of available JSON files
 ```
 
 ## JSON Schema
 
-The `ui/graph.json` file MUST follow this exact structure:
+The `ui/data/graph.json` file MUST follow this exact structure:
 
 ```json
 {
   "nodes": {
     "package-name": {
       "explicit": true | false,
+      "version": "1.2.3-4",
       "depends_on": ["pkg1", "pkg2"],
       "required_by": ["pkg3", "pkg4"]
     }
@@ -67,6 +70,8 @@ The `ui/graph.json` file MUST follow this exact structure:
 
 **Critical Rules:**
 
+- `explicit` = true if package was explicitly installed, false if dependency
+- `version` = package version string from pacman (format: "epoch:version-release" or "version-release")
 - `depends_on` = direct dependencies only (depth 1, not transitive)
 - `required_by` = direct reverse dependencies only (depth 1)
 - Empty relationships must be `[]`, never `null`
@@ -77,10 +82,12 @@ The `ui/graph.json` file MUST follow this exact structure:
 ### Data Extraction (`collect-deps.sh`)
 
 - Use `pacman -Qq` to list all installed packages
+- Use `pacman -Q` to get package versions
 - Use `pacman -Qe` to identify explicitly installed packages
 - Use `pactree -d1` for direct dependencies
 - Use `pactree -r -d1` for reverse dependencies
 - Generate valid, deterministic JSON
+- Output to `ui/data/graph.json`
 
 ### Browser UI (`ui/` directory)
 
@@ -95,7 +102,10 @@ Must implement:
 - Force-directed graph with zoom/pan
 - Visual distinction between explicit (green #4CAF50) and dependency (blue #2196F3) packages
 - Clickable nodes that show detailed info in a sidebar/inspector
-- Package name, type, dependency counts, and full dependency/reverse-dependency lists
+- Package name, version, type, dependency counts, and full dependency/reverse-dependency lists
+- Clickable package names in dependency lists for easy navigation
+- Visual indicator (orange border #FF9800) for currently selected node
+- File selector dropdown to switch between different data files
 - Smooth performance with thousands of nodes
 
 ### Performance Considerations
@@ -114,12 +124,30 @@ Since this targets Manjaro Linux with pacman:
 
 To test the complete system:
 
-1. Run `./collect-deps.sh` to generate `ui/graph.json`
+1. Run `./collect-deps.sh` to generate `ui/data/graph.json`
 2. Start HTTP server: `python3 -m http.server 8000`
 3. Open http://localhost:8000/ui/ in a browser
 4. Verify graph renders and interactions work
+5. Test file selector by creating additional JSON files in `ui/data/` and updating `ui/data/files.json`
 
 **Note**: The UI files must be served via HTTP server (not file://) for fetch() to work correctly.
+
+### Key Implementation Details
+
+**Visual Feedback:**
+- Selected nodes show an orange border (4px, #FF9800)
+- Closing the sidebar clears the selected node indicator
+- Hover states provide immediate feedback
+
+**Navigation:**
+- Clicking package names in dependency/required-by lists navigates to that package
+- Updates sidebar content and selected node indicator
+- Enables quick exploration of dependency chains
+
+**Multiple Data Files:**
+- `ui/data/files.json` acts as a manifest listing available JSON files
+- File selector dropdown dynamically populated from this manifest
+- Switching files clears and re-renders the entire graph
 
 ## Scope Boundaries
 

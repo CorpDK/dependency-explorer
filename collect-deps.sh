@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-OUTPUT_FILE="ui/graph.json"
+OUTPUT_FILE="ui/data/graph.json"
 
 echo "Manjaro Package Dependency Collector" >&2
 echo "=====================================" >&2
@@ -31,16 +31,25 @@ explicit_count=$(echo "${explicit_packages}" | wc -l)
 echo "Found ${explicit_count} explicitly installed packages" >&2
 echo "" >&2
 
-# Step 3: Build explicit package lookup map
+# Step 3: Get package versions
+echo "Collecting package versions..." >&2
+declare -A version_map
+while IFS=' ' read -r pkg_name pkg_version; do
+	version_map[${pkg_name}]="${pkg_version}"
+done < <(pacman -Q)
+echo "Collected versions for ${package_count} packages" >&2
+echo "" >&2
+
+# Step 4: Build explicit package lookup map
 declare -A explicit_map
 for pkg in ${explicit_packages}; do
 	explicit_map[${pkg}]=1
 done
 
-# Step 4: Initialize JSON output
+# Step 5: Initialize JSON output
 echo '{"nodes":{' >"${OUTPUT_FILE}"
 
-# Step 5: Process each package
+# Step 6: Process each package
 echo "Extracting dependencies..." >&2
 current=0
 first=1
@@ -93,6 +102,10 @@ for pkg in ${all_packages}; do
 	# Escape package name for JSON (handle special characters)
 	pkg_escaped="${pkg//\"/\\\"}"
 
+	# Get package version
+	pkg_version="${version_map[${pkg}]:-unknown}"
+	pkg_version_escaped="${pkg_version//\"/\\\"}"
+
 	# Add comma separator for all entries except the first
 	if [[ ${first} -eq 0 ]]; then
 		echo "," >>"${OUTPUT_FILE}"
@@ -100,11 +113,11 @@ for pkg in ${all_packages}; do
 	first=0
 
 	# Write package entry to JSON (no newline, inline format)
-	printf '"%s":{"explicit":%s,"depends_on":[%s],"required_by":[%s]}' \
-		"${pkg_escaped}" "${is_explicit}" "${deps_json}" "${reqs_json}" >>"${OUTPUT_FILE}"
+	printf '"%s":{"explicit":%s,"version":"%s","depends_on":[%s],"required_by":[%s]}' \
+		"${pkg_escaped}" "${is_explicit}" "${pkg_version_escaped}" "${deps_json}" "${reqs_json}" >>"${OUTPUT_FILE}"
 done
 
-# Step 6: Close JSON structure
+# Step 7: Close JSON structure
 echo '' >>"${OUTPUT_FILE}"
 echo '}}' >>"${OUTPUT_FILE}"
 

@@ -10,6 +10,7 @@ class DependencyGraph {
 
   async init() {
     try {
+      await this.populateFileSelector();
       await this.loadData();
       this.hideLoading();
       this.setupUI();
@@ -20,16 +21,40 @@ class DependencyGraph {
     }
   }
 
-  async loadData() {
+  async loadData(filename = "graph.json") {
     try {
-      const response = await fetch("graph.json");
+      const response = await fetch(`data/${filename}`);
       if (!response.ok) {
-        throw new Error(`Failed to load graph.json: ${response.statusText}`);
+        throw new Error(`Failed to load ${filename}: ${response.statusText}`);
       }
       const rawData = await response.json();
       this.data = this.transformData(rawData);
+      this.currentFile = filename;
     } catch (error) {
       throw new Error(`Error loading dependency data: ${error.message}`);
+    }
+  }
+
+  async listDataFiles() {
+    try {
+      const response = await fetch("data/files.json");
+      if (!response.ok) {
+        return ["graph.json"];
+      }
+      const data = await response.json();
+      return data.files || ["graph.json"];
+    } catch (error) {
+      return ["graph.json"];
+    }
+  }
+
+  async populateFileSelector() {
+    const files = await this.listDataFiles();
+    const selector = document.getElementById("file-selector");
+    if (selector) {
+      selector.innerHTML = files
+        .map((f) => `<option value="${f}">${f}</option>`)
+        .join("");
     }
   }
 
@@ -46,6 +71,7 @@ class DependencyGraph {
       const node = {
         id: name,
         explicit: info.explicit || false,
+        version: info.version || "unknown",
         depends_on: info.depends_on || [],
         required_by: info.required_by || [],
       };
@@ -89,6 +115,32 @@ class DependencyGraph {
     document.getElementById("close-sidebar").addEventListener("click", () => {
       this.closeSidebar();
     });
+
+    document.getElementById("file-selector").addEventListener("change", async (e) => {
+      const filename = e.target.value;
+      if (filename) {
+        this.showLoading();
+        await this.loadData(filename);
+        this.clearGraph();
+        this.hideLoading();
+        this.render();
+        this.updateStats();
+      }
+    });
+  }
+
+  clearGraph() {
+    if (this.simulation) {
+      this.simulation.stop();
+    }
+    this.container.selectAll("*").remove();
+  }
+
+  showLoading() {
+    const loading = document.getElementById("loading");
+    if (loading) {
+      loading.style.display = "block";
+    }
   }
 
   render() {
@@ -185,24 +237,32 @@ class DependencyGraph {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.remove("hidden");
 
+    // Update selected node visual indicator
+    this.container.selectAll(".node").classed("selected", false);
+    this.container.selectAll(".node").filter((d) => d.id === node.id).classed("selected", true);
+
     const details = document.getElementById("package-details");
 
     const depsList =
       node.depends_on.length > 0
         ? node.depends_on
-            .map((dep) => `<li>${this.escapeHtml(dep)}</li>`)
+            .map((dep) => `<li class="clickable-package" data-package="${this.escapeHtml(dep)}">${this.escapeHtml(dep)}</li>`)
             .join("")
         : '<div class="empty-list">No dependencies</div>';
 
     const reqsList =
       node.required_by.length > 0
         ? node.required_by
-            .map((req) => `<li>${this.escapeHtml(req)}</li>`)
+            .map((req) => `<li class="clickable-package" data-package="${this.escapeHtml(req)}">${this.escapeHtml(req)}</li>`)
             .join("")
         : '<div class="empty-list">Not required by any package</div>';
 
     details.innerHTML = `
             <h2>${this.escapeHtml(node.id)}</h2>
+            <div class="detail-section">
+                <strong>Version</strong>
+                <span class="version">${this.escapeHtml(node.version)}</span>
+            </div>
             <div class="detail-section">
                 <strong>Package Type</strong>
                 <span class="badge ${
@@ -228,10 +288,28 @@ class DependencyGraph {
                 }
             </div>
         `;
+
+    this.attachPackageClickHandlers();
+  }
+
+  attachPackageClickHandlers() {
+    document.querySelectorAll(".clickable-package").forEach((el) => {
+      el.addEventListener("click", () => {
+        const packageName = el.dataset.package;
+        const node = this.nodes.find((n) => n.id === packageName);
+        if (node) {
+          this.showPackageDetails(node);
+        }
+      });
+    });
   }
 
   closeSidebar() {
     document.getElementById("sidebar").classList.add("hidden");
+    // Clear selected node indicator
+    if (this.container) {
+      this.container.selectAll(".node").classed("selected", false);
+    }
   }
 
   updateStats() {

@@ -6,7 +6,10 @@ A modern, interactive browser-based tool for visualizing and exploring package d
 
 - Interactive force-directed graph visualization using D3.js
 - Visual distinction between explicitly installed and dependency packages
-- Detailed package inspection with dependency lists
+- Detailed package inspection with version information and dependency lists
+- Clickable package names for easy navigation between dependencies
+- Visual indicator (orange border) for currently selected package
+- Multiple data file support with file selector dropdown
 - Zoom, pan, and drag interactions
 - Handles thousands of packages efficiently
 - Fully static (no backend required)
@@ -21,9 +24,9 @@ Run the collection script to extract package data from your Manjaro system:
 ./collect-deps.sh
 ```
 
-This will create `ui/graph.json` containing all installed packages and their relationships. The process takes approximately 5-15 minutes depending on the number of installed packages.
+This will create `ui/data/graph.json` containing all installed packages, their versions, and relationships. The process takes approximately 5-15 minutes depending on the number of installed packages.
 
-**Note:** The repository includes a sample `graph.json` with 35 representative packages for testing the UI without running the full extraction.
+**Note:** The repository includes a sample `graph.json` with 35 representative packages (including version information) for testing the UI without running the full extraction.
 
 ### 2. View the Visualization
 
@@ -39,13 +42,34 @@ Then open http://localhost:8000/ui/ in your web browser.
 
 - **Zoom**: Scroll with mouse wheel
 - **Pan**: Click and drag the background
-- **Inspect Package**: Click on any node to see details in the sidebar
+- **Inspect Package**: Click on any node to see details in the sidebar (selected node shows orange border)
+- **Navigate Dependencies**: Click on any package name in the dependency lists to jump to that package
+- **Switch Data Files**: Use the dropdown in the header to load different JSON files
 - **Reposition Nodes**: Drag individual nodes to rearrange the layout
 
-## Color Legend
+## Visual Indicators
 
 - **Green Nodes**: Explicitly installed packages (installed by user command)
 - **Blue Nodes**: Dependency packages (installed automatically as dependencies)
+- **Orange Border**: Currently selected package (whose details are shown in the sidebar)
+
+## Working with Multiple Data Files
+
+The application supports loading different dependency graph snapshots. This is useful for:
+- Comparing system states before and after package changes
+- Tracking dependency evolution over time
+- Analyzing different system configurations
+
+To add a new data file:
+
+1. Generate or copy a JSON file to `ui/data/` (e.g., `ui/data/graph-backup.json`)
+2. Update `ui/data/files.json` to include the new file:
+   ```json
+   {
+     "files": ["graph.json", "graph-backup.json", "graph-2026-01-25.json"]
+   }
+   ```
+3. Refresh the browser and use the dropdown selector to switch between files
 
 ## Requirements
 
@@ -72,7 +96,9 @@ Then open http://localhost:8000/ui/ in your web browser.
     ├── index.html      # Main HTML page
     ├── styles.css      # Stylesheet
     ├── app.js          # Application logic
-    └── graph.json      # Dependency data (sample included, regenerate for your system)
+    └── data/           # Data files directory
+        ├── graph.json  # Dependency data (sample included, regenerate for your system)
+        └── files.json  # List of available JSON files
 ```
 
 ## Data Format
@@ -84,6 +110,7 @@ The `graph.json` file uses the following schema:
   "nodes": {
     "package-name": {
       "explicit": true | false,
+      "version": "1.2.3-4",
       "depends_on": ["dependency1", "dependency2"],
       "required_by": ["package1", "package2"]
     }
@@ -92,6 +119,7 @@ The `graph.json` file uses the following schema:
 ```
 
 - `explicit`: Whether the package was explicitly installed by the user
+- `version`: The installed version of the package (from pacman)
 - `depends_on`: Direct dependencies (depth 1) of this package
 - `required_by`: Packages that directly depend on this package (depth 1)
 
@@ -100,34 +128,42 @@ The `graph.json` file uses the following schema:
 ### Export Dependency Data for Analysis
 
 ```bash
-# Extract specific package information
-jq '.nodes.bash' ui/graph.json
+# Extract specific package information (including version)
+jq '.nodes.bash' ui/data/graph.json
 
-# List all explicitly installed packages
-jq '.nodes | to_entries | .[] | select(.value.explicit == true) | .key' ui/graph.json
+# List all explicitly installed packages with versions
+jq '.nodes | to_entries | .[] | select(.value.explicit == true) | "\(.key) \(.value.version)"' ui/data/graph.json
 
 # Find packages with no dependencies
-jq '.nodes | to_entries | .[] | select(.value.depends_on | length == 0) | .key' ui/graph.json
+jq '.nodes | to_entries | .[] | select(.value.depends_on | length == 0) | .key' ui/data/graph.json
 
 # Find packages not required by anything (potential candidates for removal)
-jq '.nodes | to_entries | .[] | select(.value.required_by | length == 0 and .value.explicit == false) | .key' ui/graph.json
+jq '.nodes | to_entries | .[] | select(.value.required_by | length == 0 and .value.explicit == false) | "\(.key) \(.value.version)"' ui/data/graph.json
+
+# Check version of a specific package
+jq '.nodes["glibc"].version' ui/data/graph.json
 ```
 
 ### Compare System States
 
 ```bash
-# Save current state
+# Save current state with timestamp
 ./collect-deps.sh
-cp ui/graph.json ui/graph-before.json
+TIMESTAMP=$(date +%Y-%m-%d)
+cp ui/data/graph.json ui/data/graph-${TIMESTAMP}.json
 
-# Make system changes (install/remove packages)
-# ...
+# Update files.json to include the new file
+echo '{"files":["graph.json","graph-'${TIMESTAMP}'.json"]}' > ui/data/files.json
 
-# Generate new state
+# Now you can use the file selector dropdown to switch between snapshots
+# The UI will show version changes and package additions/removals
+
+# Compare versions programmatically
+jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' ui/data/graph-${TIMESTAMP}.json > before.txt
+# (after system changes)
 ./collect-deps.sh
-cp ui/graph.json ui/graph-after.json
-
-# Compare (requires custom diff script or manual inspection)
+jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' ui/data/graph.json > after.txt
+diff before.txt after.txt
 ```
 
 ## Performance
@@ -143,7 +179,7 @@ The visualization is optimized for large graphs:
 
 ### graph.json not found
 
-Make sure you're running the HTTP server from the project root directory and accessing http://localhost:8000/ui/, or run `./collect-deps.sh` to generate the file.
+Make sure you're running the HTTP server from the project root directory and accessing http://localhost:8000/ui/. The data file should be at `ui/data/graph.json`. Run `./collect-deps.sh` to generate it if missing.
 
 ### Browser shows blank page
 

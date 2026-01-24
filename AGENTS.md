@@ -69,12 +69,13 @@ The output must be fully static and runnable locally without a backend server.
 
 The script MUST:
 
-- Generate a single JSON file at `ui/graph.json`
+- Generate a single JSON file at `ui/data/graph.json`
 - Include **every installed package**
 - Correctly mark packages as:
 
   - explicitly installed
   - dependency-installed
+- Include package version information
 
 #### JSON Schema (MANDATORY)
 
@@ -83,6 +84,7 @@ The script MUST:
   "nodes": {
     "package-name": {
       "explicit": true | false,
+      "version": "1.2.3-4",
       "depends_on": ["pkg1", "pkg2"],
       "required_by": ["pkg3", "pkg4"]
     }
@@ -92,6 +94,8 @@ The script MUST:
 
 Rules:
 
+- `explicit` = true if package was explicitly installed, false if dependency
+- `version` = package version string from pacman (e.g., "1.2.3-4")
 - `depends_on` = direct dependencies only (depth 1)
 - `required_by` = direct reverse dependencies only (depth 1)
 - Missing relationships MUST be empty arrays, not null
@@ -161,17 +165,26 @@ The UI should be organized in a modular fashion:
    On node click, show:
 
    - Package name
+   - Package version
    - Explicit or dependency-installed
    - Number of dependencies
    - Number of reverse dependencies
-   - List of dependencies
-   - List of reverse dependencies
+   - List of dependencies (clickable for navigation)
+   - List of reverse dependencies (clickable for navigation)
 
 4. **Graph Browsing**
 
    - Navigate the entire dependency graph
    - Drag nodes
    - Explore relationships interactively
+   - Visual indicator (orange border) for currently selected node
+   - Click package names in dependency lists to navigate between packages
+
+5. **Multiple Data Files**
+
+   - File selector dropdown to switch between different JSON data files
+   - Data files stored in `ui/data/` directory
+   - Manifest file (`ui/data/files.json`) lists available data files
 
 ---
 
@@ -194,12 +207,16 @@ The agent MUST generate:
     ├── index.html    # Main HTML page
     ├── styles.css    # Stylesheet
     ├── app.js        # Application logic
-    └── graph.json    # Generated dependency data (sample included)
+    └── data/         # Data files directory
+        ├── graph.json   # Generated dependency data (sample included)
+        └── files.json   # List of available JSON files
 ```
 
 **Note**: While the specification originally called for a single `index.html` file,
 the implementation uses a modular structure with separate HTML, CSS, and JavaScript
-files for better maintainability. This does not change the functionality or requirements.
+files for better maintainability. The data files are organized in a `ui/data/`
+subdirectory to support multiple graph snapshots. This does not change the core
+functionality or requirements.
 
 Instructions for running locally MUST be included:
 
