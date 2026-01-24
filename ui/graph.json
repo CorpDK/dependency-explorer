@@ -1,0 +1,179 @@
+{
+  "nodes": {
+    "bash": {
+      "explicit": true,
+      "depends_on": ["glibc", "readline", "ncurses"],
+      "required_by": ["pacman", "systemd", "vim", "git", "base"]
+    },
+    "glibc": {
+      "explicit": false,
+      "depends_on": ["linux-api-headers", "tzdata", "filesystem"],
+      "required_by": ["bash", "coreutils", "grep", "sed", "pacman", "curl", "openssl", "readline", "ncurses"]
+    },
+    "pacman": {
+      "explicit": true,
+      "depends_on": ["bash", "glibc", "curl", "libarchive", "gpgme", "openssl"],
+      "required_by": []
+    },
+    "readline": {
+      "explicit": false,
+      "depends_on": ["glibc", "ncurses"],
+      "required_by": ["bash", "python"]
+    },
+    "ncurses": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["bash", "readline", "vim", "less", "htop"]
+    },
+    "vim": {
+      "explicit": true,
+      "depends_on": ["bash", "glibc", "ncurses", "acl", "libgcrypt"],
+      "required_by": []
+    },
+    "git": {
+      "explicit": true,
+      "depends_on": ["bash", "perl", "curl", "expat", "openssl"],
+      "required_by": []
+    },
+    "curl": {
+      "explicit": false,
+      "depends_on": ["glibc", "openssl", "zlib", "ca-certificates"],
+      "required_by": ["pacman", "git", "wget"]
+    },
+    "openssl": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["curl", "pacman", "openssh", "git"]
+    },
+    "systemd": {
+      "explicit": true,
+      "depends_on": ["bash", "glibc", "util-linux", "libcap"],
+      "required_by": []
+    },
+    "coreutils": {
+      "explicit": false,
+      "depends_on": ["glibc", "acl", "libcap"],
+      "required_by": ["base", "filesystem"]
+    },
+    "linux-api-headers": {
+      "explicit": false,
+      "depends_on": [],
+      "required_by": ["glibc"]
+    },
+    "tzdata": {
+      "explicit": false,
+      "depends_on": [],
+      "required_by": ["glibc"]
+    },
+    "filesystem": {
+      "explicit": false,
+      "depends_on": [],
+      "required_by": ["glibc", "coreutils"]
+    },
+    "base": {
+      "explicit": true,
+      "depends_on": ["bash", "coreutils", "filesystem", "grep", "sed"],
+      "required_by": []
+    },
+    "grep": {
+      "explicit": false,
+      "depends_on": ["glibc", "pcre"],
+      "required_by": ["base"]
+    },
+    "sed": {
+      "explicit": false,
+      "depends_on": ["glibc", "acl"],
+      "required_by": ["base"]
+    },
+    "acl": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["coreutils", "vim", "sed"]
+    },
+    "libarchive": {
+      "explicit": false,
+      "depends_on": ["glibc", "zlib", "openssl"],
+      "required_by": ["pacman"]
+    },
+    "zlib": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["curl", "libarchive"]
+    },
+    "ca-certificates": {
+      "explicit": false,
+      "depends_on": [],
+      "required_by": ["curl"]
+    },
+    "perl": {
+      "explicit": false,
+      "depends_on": ["glibc", "db"],
+      "required_by": ["git"]
+    },
+    "expat": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["git"]
+    },
+    "gpgme": {
+      "explicit": false,
+      "depends_on": ["glibc", "libgpg-error"],
+      "required_by": ["pacman"]
+    },
+    "libgcrypt": {
+      "explicit": false,
+      "depends_on": ["glibc", "libgpg-error"],
+      "required_by": ["vim"]
+    },
+    "libgpg-error": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["gpgme", "libgcrypt"]
+    },
+    "libcap": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["systemd", "coreutils"]
+    },
+    "util-linux": {
+      "explicit": false,
+      "depends_on": ["glibc", "ncurses"],
+      "required_by": ["systemd"]
+    },
+    "pcre": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["grep"]
+    },
+    "db": {
+      "explicit": false,
+      "depends_on": ["glibc"],
+      "required_by": ["perl"]
+    },
+    "python": {
+      "explicit": true,
+      "depends_on": ["glibc", "readline", "openssl", "zlib"],
+      "required_by": []
+    },
+    "openssh": {
+      "explicit": true,
+      "depends_on": ["glibc", "openssl", "zlib"],
+      "required_by": []
+    },
+    "wget": {
+      "explicit": false,
+      "depends_on": ["glibc", "curl", "openssl"],
+      "required_by": []
+    },
+    "less": {
+      "explicit": false,
+      "depends_on": ["glibc", "ncurses"],
+      "required_by": []
+    },
+    "htop": {
+      "explicit": true,
+      "depends_on": ["glibc", "ncurses"],
+      "required_by": []
+    }
+  }
+}
