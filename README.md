@@ -50,11 +50,13 @@ Then open http://localhost:8000/ui/ in your web browser.
 ## Requirements
 
 ### For Data Collection
+
 - Manjaro Linux (or any Arch-based distribution with pacman)
 - `pacman` and `pactree` utilities (standard on Arch-based systems)
 - Bash shell
 
 ### For Visualization
+
 - Modern web browser (Chrome, Firefox, Edge, Safari)
 - Local HTTP server (Python 3 recommended)
 
@@ -140,16 +142,21 @@ The visualization is optimized for large graphs:
 ## Troubleshooting
 
 ### graph.json not found
+
 Make sure you're running the HTTP server from the project root directory and accessing http://localhost:8000/ui/, or run `./collect-deps.sh` to generate the file.
 
 ### Browser shows blank page
+
 Check the browser console (F12) for JavaScript errors. Ensure D3.js can be loaded from the CDN.
 
 ### Script fails on non-Manjaro system
+
 The script requires `pacman` and `pactree`. It works on any Arch-based distribution but will fail on Debian, Ubuntu, Fedora, etc.
 
 ### Visualization is slow
+
 If you have >2000 packages, consider:
+
 - Using a more powerful computer
 - Closing other browser tabs
 - Trying a different browser (Chrome typically performs best)
@@ -157,6 +164,7 @@ If you have >2000 packages, consider:
 ## Future Enhancements
 
 Potential improvements documented in `AGENTS.md` include:
+
 - Search and filtering functionality
 - Orphan package detection
 - Dependency depth analysis
