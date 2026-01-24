@@ -2,16 +2,22 @@
 #
 # collect-deps.sh - Extract Manjaro package dependency data
 #
-# Generates graph.json containing all installed packages with their
+# Generates timestamped JSON file containing all installed packages with their
 # direct dependencies and reverse dependencies.
 #
 # Requirements: pacman, pactree
-# Output: ui/graph.json
+# Output: ui/public/data/graph-YYYY-MM-DD-HHMMSS.json
 #
 
 set -euo pipefail
 
-OUTPUT_FILE="ui/data/graph.json"
+# Generate timestamp for filename
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+OUTPUT_DIR="ui/public/data"
+OUTPUT_FILE="${OUTPUT_DIR}/graph-${TIMESTAMP}.json"
+
+# Create output directory if it doesn't exist
+mkdir -p "${OUTPUT_DIR}"
 
 echo "Manjaro Package Dependency Collector" >&2
 echo "=====================================" >&2
@@ -128,4 +134,6 @@ echo "Total packages: ${package_count}" >&2
 echo "Explicit: ${explicit_count}" >&2
 echo "Dependencies: $((package_count - explicit_count))" >&2
 echo "" >&2
-echo "To view the graph, open ui/index.html in a web browser" >&2
+echo "To view the graph:" >&2
+echo "  cd ui && pnpm dev" >&2
+echo "  Then open http://localhost:3000 in your browser" >&2

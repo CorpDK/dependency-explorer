@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Manjaro Package Dependency Graph Explorer** - a static, browser-based tool for visualizing and exploring package dependencies from pacman-managed systems.
+This is a **Manjaro Package Dependency Graph Explorer** - a Next.js-based web application for visualizing and exploring package dependencies from pacman-managed systems with dynamic file discovery and timestamped data snapshots.
 
 **CRITICAL**: The complete project specification is in [AGENTS.md](AGENTS.md). All implementation decisions MUST strictly follow that specification. Read it thoroughly before making any changes.
 
@@ -12,25 +12,25 @@ This is a **Manjaro Package Dependency Graph Explorer** - a static, browser-base
 
 The system has three mandatory layers:
 
-1. **Data Extraction Layer** - Shell script (`collect-deps.sh`) that queries pacman and generates `graph.json`
+1. **Data Extraction Layer** - Shell script (`collect-deps.sh`) that queries pacman and generates timestamped JSON files
 2. **Graph Data Model** - JSON structure containing all packages, dependencies, and metadata
-3. **Browser UI** - Static HTML/CSS/JS using D3.js for interactive force-directed graph visualization
+3. **Browser UI** - Next.js + React + TypeScript application using D3.js for interactive force-directed graph visualization
 
 ## Mandatory Technology Stack
 
 ### Required
 
 - Shell scripting (bash + pacman/pactree) for data extraction
-- D3.js v7+ for graph visualization
-- Vanilla JavaScript (ES6+)
-- HTML5 + CSS3
+- Next.js 14+ with App Router
+- React 18+
+- TypeScript 5+
+- D3.js v7+ (npm package) for graph visualization
 
 ### Forbidden
 
 - Graphviz/dot (outdated static visualization)
-- Backend servers (must be fully static)
 - Python/Go/Node for extraction layer
-- React/Vue/Angular
+- Vue/Angular
 - jQuery
 - Cytoscape (unless explicitly requested)
 
@@ -38,17 +38,29 @@ The system has three mandatory layers:
 
 ```
 .
-├── AGENTS.md           # Project specification (source of truth)
-├── CLAUDE.md          # This file
-├── README.md          # User documentation
-├── collect-deps.sh    # Shell script for extracting package data
-└── ui/                # Web interface directory
-    ├── index.html     # Main HTML page
-    ├── styles.css     # Stylesheet
-    ├── app.js         # Application logic (DependencyGraph class)
-    └── data/          # Data files directory
-        ├── graph.json # Generated dependency data
-        └── files.json # List of available JSON files
+├── AGENTS.md                  # Project specification (source of truth)
+├── CLAUDE.md                  # This file
+├── README.md                  # User documentation
+├── collect-deps.sh            # Shell script for extracting package data
+└── ui/                        # Next.js application directory
+    ├── app/                   # Next.js App Router directory
+    │   ├── layout.tsx         # Root layout with metadata
+    │   ├── page.tsx           # Main page (renders DependencyGraph)
+    │   ├── globals.css        # Global styles
+    │   └── api/
+    │       └── files/
+    │           └── route.ts   # Dynamic file listing API
+    ├── components/
+    │   └── DependencyGraph.tsx  # Main graph visualization component
+    ├── public/
+    │   └── data/              # Static data files
+    │       └── *.json         # Timestamped dependency data
+    ├── package.json           # NPM dependencies and scripts
+    ├── tsconfig.json          # TypeScript configuration
+    ├── next.config.js         # Next.js configuration
+    ├── next-env.d.ts          # Next.js TypeScript declarations
+    ├── pnpm-lock.yaml         # pnpm lockfile
+    └── .gitignore             # Git ignore rules
 ```
 
 ## JSON Schema
@@ -87,26 +99,37 @@ The `ui/data/graph.json` file MUST follow this exact structure:
 - Use `pactree -d1` for direct dependencies
 - Use `pactree -r -d1` for reverse dependencies
 - Generate valid, deterministic JSON
-- Output to `ui/data/graph.json`
+- Output to `ui/public/data/graph-YYYY-MM-DD-HHMMSS.json` with timestamp
+- Create output directory if it doesn't exist
 
-### Browser UI (`ui/` directory)
+### Next.js Application (`ui/` directory)
 
-The UI is split into separate files for better maintainability:
+The application follows Next.js App Router conventions:
 
-- **index.html**: Main HTML structure with header, graph container, and sidebar
-- **styles.css**: All styling including layout, colors, animations, and responsive design
-- **app.js**: DependencyGraph class with data loading, D3.js visualization, and interaction logic
+#### API Routes
+- **app/api/files/route.ts**: Server-side endpoint that reads `public/data/` directory and returns list of JSON files sorted by modification time
+
+#### React Components
+- **components/DependencyGraph.tsx**: Client-side React component ("use client") containing:
+  - D3.js force-directed graph visualization
+  - React hooks for state management (useState, useEffect, useRef)
+  - Data fetching from `/api/files` and `/data/{filename}`
+  - All visualization and interaction logic
+
+#### Styling
+- **app/globals.css**: Global CSS with all styling for graph, nodes, sidebar, etc.
 
 Must implement:
 
-- Force-directed graph with zoom/pan
+- Force-directed graph with zoom/pan using D3.js
 - Visual distinction between explicit (green #4CAF50) and dependency (blue #2196F3) packages
-- Clickable nodes that show detailed info in a sidebar/inspector
+- Clickable nodes that show detailed info in a sidebar
 - Package name, version, type, dependency counts, and full dependency/reverse-dependency lists
 - Clickable package names in dependency lists for easy navigation
 - Visual indicator (orange border #FF9800) for currently selected node
-- File selector dropdown to switch between different data files
+- File selector dropdown that fetches files dynamically from API
 - Smooth performance with thousands of nodes
+- TypeScript type safety for all data structures
 
 ### Performance Considerations
 
@@ -119,18 +142,24 @@ Must implement:
 Since this targets Manjaro Linux with pacman:
 
 - Test `collect-deps.sh` on actual Manjaro system or use sample data
-- The browser UI should work on any system with a modern browser
-- No build tools required (static HTML/CSS/JS)
+- The Next.js application works on any system with Node.js and a modern browser
+- Uses pnpm for package management
 
 To test the complete system:
 
-1. Run `./collect-deps.sh` to generate `ui/data/graph.json`
-2. Start HTTP server: `python3 -m http.server 8000`
-3. Open http://localhost:8000/ui/ in a browser
-4. Verify graph renders and interactions work
-5. Test file selector by creating additional JSON files in `ui/data/` and updating `ui/data/files.json`
+1. Install dependencies: `cd ui && pnpm install`
+2. Run `./collect-deps.sh` from project root to generate timestamped JSON file
+3. Start dev server: `cd ui && pnpm dev`
+4. Open http://localhost:3000 in a browser
+5. Verify graph renders and interactions work
+6. Test file selector - it automatically discovers all JSON files in `public/data/`
 
-**Note**: The UI files must be served via HTTP server (not file://) for fetch() to work correctly.
+To build for production:
+
+```bash
+cd ui && pnpm build
+cd ui && pnpm start  # Production server on port 3000
+```
 
 ### Key Implementation Details
 
@@ -144,10 +173,12 @@ To test the complete system:
 - Updates sidebar content and selected node indicator
 - Enables quick exploration of dependency chains
 
-**Multiple Data Files:**
-- `ui/data/files.json` acts as a manifest listing available JSON files
-- File selector dropdown dynamically populated from this manifest
-- Switching files clears and re-renders the entire graph
+**Dynamic File Discovery:**
+- `/api/files` endpoint reads `public/data/` directory at runtime
+- Files sorted by modification time (newest first)
+- No manual manifest file needed
+- File selector dropdown populated automatically on page load
+- Timestamped filenames make it easy to identify when data was collected
 
 ## Scope Boundaries
 

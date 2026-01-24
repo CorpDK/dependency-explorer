@@ -1,6 +1,6 @@
 # Manjaro Package Dependency Explorer
 
-A modern, interactive browser-based tool for visualizing and exploring package dependencies from pacman-managed systems.
+A modern, interactive Next.js-based web application for visualizing and exploring package dependencies from pacman-managed systems with dynamic file discovery and timestamped data snapshots.
 
 ## Features
 
@@ -9,42 +9,52 @@ A modern, interactive browser-based tool for visualizing and exploring package d
 - Detailed package inspection with version information and dependency lists
 - Clickable package names for easy navigation between dependencies
 - Visual indicator (orange border) for currently selected package
-- Multiple data file support with file selector dropdown
+- Dynamic file discovery with automatic sorting by modification time
+- Timestamped JSON files for tracking system changes over time
 - Zoom, pan, and drag interactions
 - Handles thousands of packages efficiently
-- Fully static (no backend required)
+- Built with Next.js, React, and TypeScript for type safety and modern development
 
 ## Quick Start
 
-### 1. Generate Dependency Data
+### 1. Install Dependencies
+
+First, install the required npm packages:
+
+```bash
+cd ui
+pnpm install
+```
+
+### 2. Generate Dependency Data
 
 Run the collection script to extract package data from your Manjaro system:
 
 ```bash
+# From project root
 ./collect-deps.sh
 ```
 
-This will create `ui/data/graph.json` containing all installed packages, their versions, and relationships. The process takes approximately 5-15 minutes depending on the number of installed packages.
+This will create a timestamped JSON file like `ui/public/data/graph-2026-01-25-143022.json` containing all installed packages, their versions, and relationships. The process takes approximately 5-15 minutes depending on the number of installed packages.
 
-**Note:** The repository includes a sample `graph.json` with 35 representative packages (including version information) for testing the UI without running the full extraction.
+**Note:** The repository includes a sample `graph.json` for testing the UI without running the full extraction.
 
-### 2. View the Visualization
-
-Start a local HTTP server from the project root:
+### 3. Start the Development Server
 
 ```bash
-python3 -m http.server 8000
+cd ui
+pnpm dev
 ```
 
-Then open http://localhost:8000/ui/ in your web browser.
+Then open http://localhost:3000 in your web browser.
 
-### 3. Explore the Graph
+### 4. Explore the Graph
 
 - **Zoom**: Scroll with mouse wheel
 - **Pan**: Click and drag the background
 - **Inspect Package**: Click on any node to see details in the sidebar (selected node shows orange border)
 - **Navigate Dependencies**: Click on any package name in the dependency lists to jump to that package
-- **Switch Data Files**: Use the dropdown in the header to load different JSON files
+- **Switch Data Files**: Use the dropdown in the header to load different JSON files (automatically sorted by date, newest first)
 - **Reposition Nodes**: Drag individual nodes to rearrange the layout
 
 ## Visual Indicators
@@ -55,21 +65,19 @@ Then open http://localhost:8000/ui/ in your web browser.
 
 ## Working with Multiple Data Files
 
-The application supports loading different dependency graph snapshots. This is useful for:
+The application supports loading different dependency graph snapshots with automatic discovery. This is useful for:
 - Comparing system states before and after package changes
 - Tracking dependency evolution over time
 - Analyzing different system configurations
 
-To add a new data file:
+**Automatic File Discovery:**
 
-1. Generate or copy a JSON file to `ui/data/` (e.g., `ui/data/graph-backup.json`)
-2. Update `ui/data/files.json` to include the new file:
-   ```json
-   {
-     "files": ["graph.json", "graph-backup.json", "graph-2026-01-25.json"]
-   }
-   ```
-3. Refresh the browser and use the dropdown selector to switch between files
+Files in `ui/public/data/` are automatically discovered and listed in the dropdown selector. The script generates timestamped filenames, making it easy to track when data was collected:
+
+1. Each time you run `./collect-deps.sh`, a new timestamped file is created (e.g., `graph-2026-01-25-143022.json`)
+2. Files are automatically sorted by modification time (newest first)
+3. Simply refresh the browser to see new files in the dropdown
+4. No manual configuration needed!
 
 ## Requirements
 
@@ -79,26 +87,36 @@ To add a new data file:
 - `pacman` and `pactree` utilities (standard on Arch-based systems)
 - Bash shell
 
-### For Visualization
+### For Development
 
+- Node.js 18+ (for Next.js)
+- pnpm (package manager)
 - Modern web browser (Chrome, Firefox, Edge, Safari)
-- Local HTTP server (Python 3 recommended)
 
 ## File Structure
 
 ```
 .
-├── AGENTS.md           # Project specification
-├── CLAUDE.md           # Development guidance for Claude Code
-├── README.md           # This file
-├── collect-deps.sh     # Data extraction script
-└── ui/                 # Web interface directory
-    ├── index.html      # Main HTML page
-    ├── styles.css      # Stylesheet
-    ├── app.js          # Application logic
-    └── data/           # Data files directory
-        ├── graph.json  # Dependency data (sample included, regenerate for your system)
-        └── files.json  # List of available JSON files
+├── AGENTS.md                  # Project specification
+├── CLAUDE.md                  # Development guidance for Claude Code
+├── README.md                  # This file
+├── collect-deps.sh            # Data extraction script
+└── ui/                        # Next.js application directory
+    ├── app/                   # Next.js App Router
+    │   ├── layout.tsx         # Root layout
+    │   ├── page.tsx           # Main page
+    │   ├── globals.css        # Global styles
+    │   └── api/
+    │       └── files/
+    │           └── route.ts   # API for file discovery
+    ├── components/
+    │   └── DependencyGraph.tsx  # Graph visualization
+    ├── public/
+    │   └── data/              # Generated JSON files
+    │       └── *.json         # Timestamped dependency data
+    ├── package.json           # Dependencies and scripts
+    ├── tsconfig.json          # TypeScript config
+    └── next.config.js         # Next.js config
 ```
 
 ## Data Format
@@ -128,41 +146,46 @@ The `graph.json` file uses the following schema:
 ### Export Dependency Data for Analysis
 
 ```bash
+# Get the most recent data file
+LATEST=$(ls -t ui/public/data/graph-*.json | head -1)
+
 # Extract specific package information (including version)
-jq '.nodes.bash' ui/data/graph.json
+jq '.nodes.bash' "$LATEST"
 
 # List all explicitly installed packages with versions
-jq '.nodes | to_entries | .[] | select(.value.explicit == true) | "\(.key) \(.value.version)"' ui/data/graph.json
+jq '.nodes | to_entries | .[] | select(.value.explicit == true) | "\(.key) \(.value.version)"' "$LATEST"
 
 # Find packages with no dependencies
-jq '.nodes | to_entries | .[] | select(.value.depends_on | length == 0) | .key' ui/data/graph.json
+jq '.nodes | to_entries | .[] | select(.value.depends_on | length == 0) | .key' "$LATEST"
 
 # Find packages not required by anything (potential candidates for removal)
-jq '.nodes | to_entries | .[] | select(.value.required_by | length == 0 and .value.explicit == false) | "\(.key) \(.value.version)"' ui/data/graph.json
+jq '.nodes | to_entries | .[] | select(.value.required_by | length == 0 and .value.explicit == false) | "\(.key) \(.value.version)"' "$LATEST"
 
 # Check version of a specific package
-jq '.nodes["glibc"].version' ui/data/graph.json
+jq '.nodes["glibc"].version' "$LATEST"
 ```
 
 ### Compare System States
 
 ```bash
-# Save current state with timestamp
+# Save current state (automatically timestamped)
 ./collect-deps.sh
-TIMESTAMP=$(date +%Y-%m-%d)
-cp ui/data/graph.json ui/data/graph-${TIMESTAMP}.json
+# Output: ui/public/data/graph-2026-01-25-143022.json
 
-# Update files.json to include the new file
-echo '{"files":["graph.json","graph-'${TIMESTAMP}'.json"]}' > ui/data/files.json
+# Make system changes (install/remove packages)
+# ...
 
-# Now you can use the file selector dropdown to switch between snapshots
-# The UI will show version changes and package additions/removals
+# Generate new snapshot
+./collect-deps.sh
+# Output: ui/public/data/graph-2026-01-25-150530.json
 
+# Files are automatically available in the dropdown selector (sorted by date)
 # Compare versions programmatically
-jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' ui/data/graph-${TIMESTAMP}.json > before.txt
-# (after system changes)
-./collect-deps.sh
-jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' ui/data/graph.json > after.txt
+OLD=$(ls -t ui/public/data/graph-*.json | tail -2 | head -1)
+NEW=$(ls -t ui/public/data/graph-*.json | head -1)
+
+jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' "$OLD" > before.txt
+jq -r '.nodes | to_entries | .[] | "\(.key): \(.value.version)"' "$NEW" > after.txt
 diff before.txt after.txt
 ```
 
@@ -177,13 +200,30 @@ The visualization is optimized for large graphs:
 
 ## Troubleshooting
 
-### graph.json not found
+### No JSON files found
 
-Make sure you're running the HTTP server from the project root directory and accessing http://localhost:8000/ui/. The data file should be at `ui/data/graph.json`. Run `./collect-deps.sh` to generate it if missing.
+Run `./collect-deps.sh` from the project root to generate a timestamped data file. Make sure it's being created in `ui/public/data/`.
+
+### Cannot find module 'd3' or other dependencies
+
+Make sure you've run `pnpm install` in the `ui/` directory:
+```bash
+cd ui && pnpm install
+```
+
+### Port 3000 already in use
+
+Kill the process using port 3000 or use a different port:
+```bash
+pnpm dev -- -p 3001
+```
 
 ### Browser shows blank page
 
-Check the browser console (F12) for JavaScript errors. Ensure D3.js can be loaded from the CDN.
+Check the browser console (F12) for errors. Make sure:
+1. The dev server is running (`pnpm dev`)
+2. You're accessing http://localhost:3000 (not a different port)
+3. At least one JSON file exists in `ui/public/data/`
 
 ### Script fails on non-Manjaro system
 
@@ -215,10 +255,12 @@ This project is created as a utility tool. Feel free to use and modify as needed
 
 ## Technical Details
 
-- **Data Extraction**: Pure shell script using pacman/pactree
+- **Data Extraction**: Pure shell script using pacman/pactree with timestamped output
+- **Frontend**: Next.js 14 with App Router, React 18, TypeScript 5
 - **Visualization**: D3.js v7 force-directed graph
+- **API**: Server-side route for dynamic file discovery
 - **Architecture**: Three-layer design (extraction → data model → UI)
-- **No backend**: Fully static, client-side application
-- **Code Organization**: Modular structure with separate HTML, CSS, and JavaScript files
+- **Development**: Hot reload with Next.js dev server, type-safe with TypeScript
+- **Package Manager**: pnpm for fast, efficient dependency management
 
 For detailed technical specifications, see [AGENTS.md](AGENTS.md).
