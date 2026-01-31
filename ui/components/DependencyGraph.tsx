@@ -44,7 +44,7 @@ export default function DependencyGraph() {
   const [links, setLinks] = useState<PackageLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(null);
 
@@ -55,9 +55,6 @@ export default function DependencyGraph() {
         const response = await fetch("/api/files");
         const data = await response.json();
         setFiles(data.files || []);
-        if (data.files && data.files.length > 0) {
-          setSelectedFile(data.files[0]);
-        }
       } catch (err) {
         console.error("Error fetching files:", err);
         setError("Failed to load available files");
@@ -131,8 +128,16 @@ export default function DependencyGraph() {
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || nodes.length === 0) return;
 
+    // Stop and cleanup any existing simulation FIRST
+    if (simulationRef.current) {
+      simulationRef.current.stop();
+      simulationRef.current.on("tick", null); // Remove all tick listeners
+      simulationRef.current = null;
+    }
+
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+    svg.selectAll("*").remove(); // Clear DOM
+    svg.on(".zoom", null); // Remove zoom handlers
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
@@ -161,7 +166,7 @@ export default function DependencyGraph() {
     const node = g
       .append("g")
       .attr("class", "nodes")
-      .selectAll("circle")
+      .selectAll<SVGCircleElement, PackageNode>("circle")
       .data(nodes)
       .join("circle")
       .attr("class", (d) => (d.explicit ? "node explicit" : "node dependency"))
@@ -191,7 +196,7 @@ export default function DependencyGraph() {
 
     node.append("title").text((d) => d.id);
 
-    // Force simulation
+    // Force simulation with aggressive settings for large graphs
     const simulation = d3
       .forceSimulation(nodes)
       .force(
@@ -205,11 +210,14 @@ export default function DependencyGraph() {
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide().radius(15));
 
+    // Aggressive optimization for large graphs
     if (nodes.length > 500) {
-      simulation.alphaDecay(0.05);
+      simulation.alphaDecay(0.05); // Faster convergence
+      simulation.velocityDecay(0.6); // More damping
     }
 
-    simulation.on("tick", () => {
+    // Use a single tick handler reference
+    const tickHandler = () => {
       link
         .attr("x1", (d) => (d.source as PackageNode).x || 0)
         .attr("y1", (d) => (d.source as PackageNode).y || 0)
@@ -217,6 +225,13 @@ export default function DependencyGraph() {
         .attr("y2", (d) => (d.target as PackageNode).y || 0);
 
       node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
+    };
+
+    simulation.on("tick", tickHandler);
+
+    // Auto-stop simulation when it converges (critical for memory)
+    simulation.on("end", () => {
+      console.log("Simulation converged and stopped");
     });
 
     simulationRef.current = simulation;
@@ -232,9 +247,14 @@ export default function DependencyGraph() {
 
     window.addEventListener("resize", handleResize);
 
+    // Cleanup function
     return () => {
-      simulation.stop();
       window.removeEventListener("resize", handleResize);
+      simulation.stop();
+      simulation.on("tick", null); // Remove tick listener
+      // Clear D3 selections to release DOM references
+      svg.selectAll("*").remove();
+      svg.on(".zoom", null);
     };
   }, [nodes, links]);
 
@@ -261,12 +281,6 @@ export default function DependencyGraph() {
     }
   };
 
-  const escapeHtml = (text: string): string => {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  };
-
   const explicitCount = nodes.filter((n) => n.explicit).length;
   const dependencyCount = nodes.length - explicitCount;
 
@@ -281,6 +295,7 @@ export default function DependencyGraph() {
               value={selectedFile}
               onChange={(e) => setSelectedFile(e.target.value)}
             >
+              <option value="">Select a data file...</option>
               {files.map((file) => (
                 <option key={file} value={file}>
                   {file}
@@ -302,6 +317,11 @@ export default function DependencyGraph() {
 
       <main>
         <div id="graph-container" ref={containerRef}>
+          {!selectedFile && !loading && !error && (
+            <div id="loading">
+              <div>Please select a data file from the dropdown above to visualize the dependency graph.</div>
+            </div>
+          )}
           {loading && (
             <div id="loading">
               <div className="spinner"></div>
@@ -320,7 +340,7 @@ export default function DependencyGraph() {
               </div>
             </div>
           )}
-          {!loading && !error && <svg id="graph" ref={svgRef}></svg>}
+          {selectedFile && !loading && !error && <svg id="graph" ref={svgRef}></svg>}
         </div>
 
         <div id="sidebar" className={sidebarHidden ? "hidden" : ""}>
@@ -351,12 +371,13 @@ export default function DependencyGraph() {
                 {selectedNode.depends_on.length > 0 ? (
                   <ul>
                     {selectedNode.depends_on.map((dep) => (
-                      <li
-                        key={dep}
-                        className="clickable-package"
-                        onClick={() => handlePackageClick(dep)}
-                      >
-                        {dep}
+                      <li key={dep}>
+                        <button
+                          className="clickable-package"
+                          onClick={() => handlePackageClick(dep)}
+                        >
+                          {dep}
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -369,12 +390,13 @@ export default function DependencyGraph() {
                 {selectedNode.required_by.length > 0 ? (
                   <ul>
                     {selectedNode.required_by.map((req) => (
-                      <li
-                        key={req}
-                        className="clickable-package"
-                        onClick={() => handlePackageClick(req)}
-                      >
-                        {req}
+                      <li key={req}>
+                        <button
+                          className="clickable-package"
+                          onClick={() => handlePackageClick(req)}
+                        >
+                          {req}
+                        </button>
                       </li>
                     ))}
                   </ul>
