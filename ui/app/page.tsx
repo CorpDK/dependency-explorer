@@ -127,7 +127,10 @@ export default function Home() {
               <strong className="text-zinc-300">Host:</strong> {graphInfo.hostname}
             </span>
             <span>
-              <strong className="text-zinc-300">Collected:</strong> {graphInfo.timestamp.replaceAll("-", "/").replace(/(\d{4}\/\d{2}\/\d{2})\/(\d{2})(\d{2})(\d{2})/, "$1 $2:$3:$4")}
+              <strong className="text-zinc-300">Shell Used:</strong> {graphInfo.shell}
+            </span>
+            <span>
+              <strong className="text-zinc-300">Collected On:</strong> {graphInfo.timestamp.replaceAll("-", "/").replace(/(\d{4}\/\d{2}\/\d{2})\/(\d{2})(\d{2})(\d{2})/, "$1 $2:$3:$4")}
             </span>
           </div>
         )}
