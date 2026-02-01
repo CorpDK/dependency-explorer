@@ -7,6 +7,8 @@ import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
 import Sidebar from "@/components/graph/Sidebar";
+import ZoomControls from "@/components/graph/ZoomControls";
+import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 
 interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   source: string | PackageNode;
@@ -19,7 +21,13 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
   const [links, setLinks] = useState<PackageLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
+  const [currentZoom, setCurrentZoom] = useState(1);
   const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(null);
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+  const MIN_ZOOM = 0.1;
+  const MAX_ZOOM = 10;
+  const ZOOM_STEP = 0.2;
 
   // Transform nodes to links when nodes change
   useEffect(() => {
@@ -62,19 +70,29 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
-    svg.on(".zoom", null);
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
 
     const g = svg.append("g");
 
-    // Zoom behavior
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 10])
-      .on("zoom", (event) => {
+    // Zoom behavior - create or reuse
+    let zoom = zoomBehaviorRef.current;
+    if (!zoom) {
+      zoom = d3.zoom<SVGSVGElement, unknown>()
+        .scaleExtent([MIN_ZOOM, MAX_ZOOM])
+        .on("zoom", (event) => {
+          g.attr("transform", event.transform);
+          setCurrentZoom(event.transform.k);
+        });
+      zoomBehaviorRef.current = zoom;
+    } else {
+      // Update the zoom callback to use the new 'g' element
+      zoom.on("zoom", (event) => {
         g.attr("transform", event.transform);
+        setCurrentZoom(event.transform.k);
       });
+    }
 
     svg.call(zoom);
 
@@ -174,7 +192,7 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
       simulation.stop();
       simulation.on("tick", null);
       svg.selectAll("*").remove();
-      svg.on(".zoom", null);
+      // Don't remove zoom behavior - we want to keep it for the controls
     };
   }, [nodes, links]);
 
@@ -206,6 +224,15 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
     setSelectedNode(null);
   };
 
+  const { handleZoomIn, handleZoomOut, handleZoomChange, handleZoomReset } = useZoomHandlers({
+    svgRef,
+    zoomBehaviorRef,
+    currentZoom,
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    zoomStep: ZOOM_STEP,
+  });
+
   if (loading) {
     return <LoadingState message="Loading dependency graph..." />;
   }
@@ -221,7 +248,16 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
   return (
     <div className="h-full w-full flex overflow-hidden relative bg-zinc-50 dark:bg-zinc-900">
       <div className="flex-1 relative" ref={containerRef}>
-        <svg className="w-full h-full cursor-grab active:cursor-grabbing" ref={svgRef}></svg>
+        <svg className="w-full h-full cursor-grab active:cursor-grabbing pointer-events-auto" ref={svgRef}></svg>
+        <ZoomControls
+          currentZoom={currentZoom}
+          minZoom={MIN_ZOOM}
+          maxZoom={MAX_ZOOM}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onZoomChange={handleZoomChange}
+          onReset={handleZoomReset}
+        />
       </div>
       <Sidebar
         isHidden={sidebarHidden}
