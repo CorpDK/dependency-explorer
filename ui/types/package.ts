@@ -29,7 +29,7 @@ export interface PackageInfo {
   required_by: string[];
 }
 
-export type ViewMode = "graph" | "list" | "orphaned";
+export type ViewMode = "graph" | "list" | "orphaned" | "investigate";
 
 export interface ViewProps {
   nodes: PackageNode[];

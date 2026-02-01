@@ -44,6 +44,12 @@ export default function ViewTabs({
       >
         Orphaned Packages
       </Tab>
+      <Tab
+        active={viewMode === "investigate"}
+        onClick={() => onViewChange("investigate")}
+      >
+        Investigate
+      </Tab>
     </div>
   );
 }

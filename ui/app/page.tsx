@@ -3,6 +3,7 @@
 import DependencyGraph from "@/components/DependencyGraph";
 import OrphanedPackages from "@/components/OrphanedPackages";
 import PackageList from "@/components/PackageList";
+import Investigate from "@/components/Investigate";
 import FileSelector from "@/components/header/FileSelector";
 import Legend from "@/components/header/Legend";
 import SystemInfo from "@/components/header/SystemInfo";
@@ -104,6 +105,9 @@ export default function Home() {
         )}
         {viewMode === "orphaned" && (
           <OrphanedPackages nodes={nodes} loading={loading} error={error} />
+        )}
+        {viewMode === "investigate" && (
+          <Investigate nodes={nodes} loading={loading} error={error} />
         )}
       </div>
     </div>
