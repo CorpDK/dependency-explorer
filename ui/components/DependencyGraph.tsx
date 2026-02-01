@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   source: string | PackageNode;
   target: string | PackageNode;
+  type: "explicit" | "dependency";
 }
 
 export default function DependencyGraph({
@@ -58,6 +59,7 @@ export default function DependencyGraph({
           newLinks.push({
             source: node.id,
             target: dep,
+            type: node.explicit ? "explicit" : "dependency",
           });
         }
       });
@@ -113,7 +115,9 @@ export default function DependencyGraph({
       .selectAll("line")
       .data(links)
       .join("line")
-      .attr("class", "link");
+      .attr("class", (d) =>
+        d.type === "explicit" ? "link link-explicit" : "link link-dependency",
+      );
 
     // Nodes
     const node = g

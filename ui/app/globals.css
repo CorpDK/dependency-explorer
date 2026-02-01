@@ -58,6 +58,16 @@ body {
   pointer-events: none;
 }
 
+.link.link-explicit {
+  stroke: #4caf50 !important;
+  stroke-opacity: 0.5;
+}
+
+.link.link-dependency {
+  stroke: #2196f3 !important;
+  stroke-opacity: 0.4;
+}
+
 @media (prefers-color-scheme: dark) {
   .node {
     stroke: #3f3f46;
@@ -69,6 +79,16 @@ body {
 
   .link {
     stroke: #71717a;
+  }
+
+  .link.link-explicit {
+    stroke: #66bb6a !important;
+    stroke-opacity: 0.5;
+  }
+
+  .link.link-dependency {
+    stroke: #42a5f5 !important;
+    stroke-opacity: 0.4;
   }
 }
 
