@@ -4,19 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
 // Type definitions for package data
-interface PackageInfo {
-  explicit: boolean;
-  version: string;
-  depends_on: string[];
-  required_by: string[];
-}
-
-interface RawGraphData {
-  nodes: {
-    [packageName: string]: PackageInfo;
-  };
-}
-
 interface PackageNode extends d3.SimulationNodeDatum {
   id: string;
   explicit: boolean;
@@ -30,90 +17,38 @@ interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   target: string | PackageNode;
 }
 
-interface GraphData {
+interface DependencyGraphProps {
   nodes: PackageNode[];
-  links: PackageLink[];
+  loading: boolean;
+  error: string;
 }
 
-export default function DependencyGraph() {
+export default function DependencyGraph({ nodes, loading, error }: DependencyGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [files, setFiles] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<string>("");
-  const [nodes, setNodes] = useState<PackageNode[]>([]);
   const [links, setLinks] = useState<PackageLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>("");
   const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(null);
 
-  // Fetch available JSON files
+  // Transform nodes to links when nodes change
   useEffect(() => {
-    async function fetchFiles() {
-      try {
-        const response = await fetch("/api/files");
-        const data = await response.json();
-        setFiles(data.files || []);
-      } catch (err) {
-        console.error("Error fetching files:", err);
-        setError("Failed to load available files");
-      }
+    if (nodes.length === 0) {
+      setLinks([]);
+      return;
     }
-    fetchFiles();
-  }, []);
 
-  // Load data when selected file changes
-  useEffect(() => {
-    if (!selectedFile) return;
-
-    async function loadData() {
-      try {
-        setLoading(true);
-        setError("");
-        const response = await fetch(`/data/${selectedFile}`);
-        if (!response.ok) {
-          throw new Error(`Failed to load ${selectedFile}`);
-        }
-        const rawData: RawGraphData = await response.json();
-        const graphData = transformData(rawData);
-        setNodes(graphData.nodes);
-        setLinks(graphData.links);
-        setLoading(false);
-      } catch (err) {
-        setError((err as Error).message);
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, [selectedFile]);
-
-  // Transform raw data to graph format
-  function transformData(rawData: RawGraphData): GraphData {
-    const nodes: PackageNode[] = [];
-    const links: PackageLink[] = [];
+    const newLinks: PackageLink[] = [];
     const nodeMap = new Map<string, number>();
 
-    if (!rawData.nodes || typeof rawData.nodes !== "object") {
-      throw new Error("Invalid graph.json format: missing nodes object");
-    }
-
-    Object.entries(rawData.nodes).forEach(([name, info]) => {
-      const node: PackageNode = {
-        id: name,
-        explicit: info.explicit || false,
-        version: info.version || "unknown",
-        depends_on: info.depends_on || [],
-        required_by: info.required_by || [],
-      };
-      nodes.push(node);
-      nodeMap.set(name, nodes.length - 1);
+    nodes.forEach((node, index) => {
+      nodeMap.set(node.id, index);
     });
 
     nodes.forEach((node) => {
       node.depends_on.forEach((dep) => {
         if (nodeMap.has(dep)) {
-          links.push({
+          newLinks.push({
             source: node.id,
             target: dep,
           });
@@ -121,8 +56,8 @@ export default function DependencyGraph() {
       });
     });
 
-    return { nodes, links };
-  }
+    setLinks(newLinks);
+  }, [nodes]);
 
   // Render D3 visualization
   useEffect(() => {
@@ -281,69 +216,49 @@ export default function DependencyGraph() {
     }
   };
 
-  const explicitCount = nodes.filter((n) => n.explicit).length;
-  const dependencyCount = nodes.length - explicitCount;
+  if (loading) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
+          <div className="border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-800 dark:border-t-zinc-300 rounded-full w-10 h-10 animate-spin mx-auto mb-4"></div>
+          <div>Loading dependency graph...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+        <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
+          <strong>Error loading graph</strong>
+          <br />
+          {error}
+          <br />
+          <br />
+          <small>Make sure JSON files exist in the data directory.</small>
+        </div>
+      </div>
+    );
+  }
+
+  if (nodes.length === 0) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
+          Please select a data file from the dropdown above to visualize the dependency graph.
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-50 dark:bg-zinc-900">
-      <header className="bg-zinc-800 dark:bg-zinc-950 text-white px-6 py-4 shadow-md z-10">
-        <h1 className="text-2xl font-semibold mb-2">Manjaro Package Dependency Graph</h1>
-        <div className="flex flex-wrap gap-8 text-sm text-zinc-300">
-          <span>
-            <select
-              className="px-3 py-1.5 rounded border border-zinc-600 bg-zinc-700 text-white text-sm cursor-pointer transition-colors hover:bg-zinc-600 focus:outline-none focus:border-green-500"
-              value={selectedFile}
-              onChange={(e) => setSelectedFile(e.target.value)}
-            >
-              <option value="">Select a data file...</option>
-              {files.map((file) => (
-                <option key={file} value={file}>
-                  {file}
-                </option>
-              ))}
-            </select>
-          </span>
-          <span>
-            {nodes.length} packages ({explicitCount} explicit, {dependencyCount} dependencies)
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span> Explicit
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dependency
-          </span>
-        </div>
-      </header>
+    <div className="h-full w-full flex overflow-hidden relative bg-zinc-50 dark:bg-zinc-900">
+      <div className="flex-1 relative" ref={containerRef}>
+        <svg className="w-full h-full cursor-grab active:cursor-grabbing" ref={svgRef}></svg>
+      </div>
 
-      <main className="flex-1 flex overflow-hidden relative">
-        <div className="flex-1 relative bg-zinc-50 dark:bg-zinc-900" ref={containerRef}>
-          {!selectedFile && !loading && !error && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg text-zinc-600 dark:text-zinc-400">
-              <div>Please select a data file from the dropdown above to visualize the dependency graph.</div>
-            </div>
-          )}
-          {loading && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg text-zinc-600 dark:text-zinc-400">
-              <div className="border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-800 dark:border-t-zinc-300 rounded-full w-10 h-10 animate-spin mx-auto mb-4"></div>
-              <div>Loading dependency graph...</div>
-            </div>
-          )}
-          {error && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-              <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
-                <strong>Error loading graph</strong>
-                <br />
-                {error}
-                <br />
-                <br />
-                <small>Make sure JSON files exist in the data directory.</small>
-              </div>
-            </div>
-          )}
-          {selectedFile && !loading && !error && <svg className="w-full h-full cursor-grab active:cursor-grabbing" ref={svgRef}></svg>}
-        </div>
-
-        <div className={`w-96 bg-white dark:bg-zinc-800 shadow-[-2px_0_8px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_8px_rgba(0,0,0,0.3)] overflow-y-auto p-6 transition-transform duration-300 ease-in-out relative z-[5] ${sidebarHidden ? "translate-x-full absolute right-0 h-full" : ""}`}>
+      <div className={`w-96 bg-white dark:bg-zinc-800 shadow-[-2px_0_8px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_8px_rgba(0,0,0,0.3)] overflow-y-auto p-6 transition-transform duration-300 ease-in-out relative z-[5] ${sidebarHidden ? "translate-x-full absolute right-0 h-full" : ""}`}>
           <button
             className="absolute top-4 right-4 bg-transparent border-none text-2xl text-zinc-600 dark:text-zinc-400 cursor-pointer w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700"
             onClick={() => {
@@ -428,8 +343,7 @@ export default function DependencyGraph() {
               </div>
             </div>
           )}
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
