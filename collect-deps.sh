@@ -1,26 +1,38 @@
 #!/bin/bash
 #
-# collect-deps.sh - Extract Manjaro package dependency data
+# collect-deps.sh - Extract package dependency data for Arch-based distributions
 #
 # Generates timestamped JSON file containing all installed packages with their
 # direct dependencies and reverse dependencies.
 #
 # Requirements: pacman, pactree
-# Output: ui/public/data/graph-YYYY-MM-DD-HHMMSS.json
+# Output: ui/public/data/<OS-name>-<hostname>-<timestamp>.json
 #
 
 set -euo pipefail
 
+# Get OS name from /etc/os-release
+if [[ -f /etc/os-release ]]; then
+	OS_NAME=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+else
+	OS_NAME="arch"
+fi
+
+# Get hostname
+HOSTNAME=$(hostname -s)
+
 # Generate timestamp for filename
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 OUTPUT_DIR="ui/public/data"
-OUTPUT_FILE="${OUTPUT_DIR}/graph-${TIMESTAMP}.json"
+OUTPUT_FILE="${OUTPUT_DIR}/${OS_NAME}-${HOSTNAME}-${TIMESTAMP}.json"
 
 # Create output directory if it doesn't exist
 mkdir -p "${OUTPUT_DIR}"
 
-echo "Manjaro Package Dependency Collector" >&2
-echo "=====================================" >&2
+echo "Arch-based Package Dependency Collector" >&2
+echo "========================================" >&2
+echo "OS: ${OS_NAME}" >&2
+echo "Hostname: ${HOSTNAME}" >&2
 echo "" >&2
 
 # Step 1: Get all installed packages
@@ -52,8 +64,20 @@ for pkg in ${explicit_packages}; do
 	explicit_map[${pkg}]=1
 done
 
-# Step 5: Initialize JSON output
-echo '{"nodes":{' >"${OUTPUT_FILE}"
+# Step 5: Initialize JSON output with info object
+# Get shell name from $SHELL environment variable
+SHELL_NAME=$(basename "${SHELL:-/bin/bash}")
+
+cat >"${OUTPUT_FILE}" <<EOF
+{
+  "info": {
+    "os": "${OS_NAME}",
+    "hostname": "${HOSTNAME}",
+    "timestamp": "${TIMESTAMP}",
+    "shell": "${SHELL_NAME}"
+  },
+  "nodes": {
+EOF
 
 # Step 6: Process each package
 echo "Extracting dependencies..." >&2
@@ -124,8 +148,11 @@ for pkg in ${all_packages}; do
 done
 
 # Step 7: Close JSON structure
-echo '' >>"${OUTPUT_FILE}"
-echo '}}' >>"${OUTPUT_FILE}"
+cat >>"${OUTPUT_FILE}" <<'EOF'
+
+  }
+}
+EOF
 
 echo "" >&2
 echo "=====================================" >&2

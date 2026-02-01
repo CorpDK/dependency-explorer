@@ -204,33 +204,36 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
                           <li key={dep.id}>
                             <button
                               onClick={() => handleDependencyClick(dep)}
-                              className="w-full text-left p-2 rounded transition-colors bg-zinc-50 dark:bg-zinc-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              className="w-full text-left p-2 rounded transition-colors relative bg-zinc-50 dark:bg-zinc-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`w-2 h-2 rounded-full ${
-                                    dep.explicit
-                                      ? "bg-green-500"
-                                      : isOrphaned
-                                      ? "bg-orange-500"
-                                      : "bg-blue-500"
-                                  }`}
-                                ></span>
-                                <div className="flex-1">
-                                  <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100">
-                                    {dep.id}
-                                  </div>
-                                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                                    v{dep.version}
-                                  </div>
-                                  <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
-                                    {dep.explicit
-                                      ? "Explicitly installed"
-                                      : isOrphaned
-                                      ? "Orphaned dependency"
-                                      : `Required by ${dep.required_by.length} package${dep.required_by.length === 1 ? "" : "s"}`}
-                                  </div>
-                                </div>
+                              <span
+                                className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
+                                  dep.explicit
+                                    ? "bg-green-500"
+                                    : isOrphaned
+                                    ? "bg-orange-500"
+                                    : "bg-blue-500"
+                                }`}
+                                title={
+                                  dep.explicit
+                                    ? "Explicitly installed"
+                                    : isOrphaned
+                                    ? "Orphaned dependency"
+                                    : "Dependency"
+                                }
+                              ></span>
+                              <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 pr-4">
+                                {dep.id}
+                              </div>
+                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                                v{dep.version}
+                              </div>
+                              <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
+                                {dep.explicit
+                                  ? "Explicitly installed"
+                                  : isOrphaned
+                                  ? "Orphaned dependency"
+                                  : `Required by ${dep.required_by.length} package${dep.required_by.length === 1 ? "" : "s"}`}
                               </div>
                             </button>
                           </li>

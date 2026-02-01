@@ -319,18 +319,22 @@ export default function PackageList({ nodes, loading, error }: PackageListProps)
                   ? Array.from<string>(explicitParents).sort((a, b) => a.localeCompare(b)).join(", ")
                   : "";
                 const isHighlighted = isDependencyHighlighted(pkg);
+                const isOrphaned = pkg.required_by.length === 0;
 
                 return (
                   <li key={pkg.id}>
                     <button
                       onClick={() => handleDependencyClick(pkg)}
-                      className={`w-full text-left p-2 rounded transition-colors ${
+                      className={`w-full text-left p-2 rounded transition-colors relative ${
                         isHighlighted
                           ? "bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-500"
                           : "bg-zinc-50 dark:bg-zinc-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       }`}
                     >
-                      <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100">
+                      {isOrphaned && (
+                        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-orange-500" title="Orphaned package"></span>
+                      )}
+                      <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 pr-4">
                         {pkg.id}
                       </div>
                       <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">

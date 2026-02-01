@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Manjaro Package Dependency Graph Explorer** - a Next.js-based web application for visualizing and exploring package dependencies from pacman-managed systems with dynamic file discovery and timestamped data snapshots.
+This is an **Arch-based Package Dependency Explorer** - a Next.js-based web application for visualizing and exploring package dependencies from pacman-managed systems (Arch, Manjaro, EndeavourOS, etc.) with dynamic file discovery and timestamped data snapshots including system metadata.
 
 **CRITICAL**: The complete project specification is in [AGENTS.md](AGENTS.md). All implementation decisions MUST strictly follow that specification. Read it thoroughly before making any changes.
 
@@ -65,10 +65,16 @@ The system has three mandatory layers:
 
 ## JSON Schema
 
-The `ui/data/graph.json` file MUST follow this exact structure:
+The generated JSON files MUST follow this exact structure:
 
 ```json
 {
+  "info": {
+    "os": "manjaro",
+    "hostname": "mycomputer",
+    "timestamp": "2026-02-01-143022",
+    "shell": "bash"
+  },
   "nodes": {
     "package-name": {
       "explicit": true | false,
@@ -82,6 +88,11 @@ The `ui/data/graph.json` file MUST follow this exact structure:
 
 **Critical Rules:**
 
+- `info` object contains system metadata (os, hostname, timestamp, shell)
+- `os` = distribution ID from /etc/os-release (e.g., "manjaro", "arch", "endeavouros")
+- `hostname` = short hostname from `hostname -s` command
+- `timestamp` = collection time in YYYY-MM-DD-HHMMSS format
+- `shell` = shell used for collection (typically "bash")
 - `explicit` = true if package was explicitly installed, false if dependency
 - `version` = package version string from pacman (format: "epoch:version-release" or "version-release")
 - `depends_on` = direct dependencies only (depth 1, not transitive)
@@ -93,13 +104,15 @@ The `ui/data/graph.json` file MUST follow this exact structure:
 
 ### Data Extraction (`collect-deps.sh`)
 
+- Extract OS name from `/etc/os-release` (ID field)
+- Get hostname using `hostname -s`
 - Use `pacman -Qq` to list all installed packages
 - Use `pacman -Q` to get package versions
 - Use `pacman -Qe` to identify explicitly installed packages
 - Use `pactree -d1` for direct dependencies
 - Use `pactree -r -d1` for reverse dependencies
-- Generate valid, deterministic JSON
-- Output to `ui/public/data/graph-YYYY-MM-DD-HHMMSS.json` with timestamp
+- Generate valid, deterministic JSON with system metadata in `info` object
+- Output to `ui/public/data/<os>-<hostname>-YYYY-MM-DD-HHMMSS.json`
 - Create output directory if it doesn't exist
 
 ### Next.js Application (`ui/` directory)
@@ -139,9 +152,9 @@ Must implement:
 
 ## Development Workflow
 
-Since this targets Manjaro Linux with pacman:
+Since this targets Arch-based distributions with pacman:
 
-- Test `collect-deps.sh` on actual Manjaro system or use sample data
+- Test `collect-deps.sh` on actual Arch-based system (Arch, Manjaro, EndeavourOS, etc.) or use sample data
 - The Next.js application works on any system with Node.js and a modern browser
 - Uses pnpm for package management
 

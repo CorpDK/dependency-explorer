@@ -14,7 +14,15 @@ interface PackageInfo {
   required_by: string[];
 }
 
+interface GraphInfo {
+  os: string;
+  hostname: string;
+  timestamp: string;
+  shell: string;
+}
+
 interface RawGraphData {
+  info?: GraphInfo;
   nodes: {
     [packageName: string]: PackageInfo;
   };
@@ -33,6 +41,7 @@ export default function Home() {
   const [files, setFiles] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [nodes, setNodes] = useState<PackageNode[]>([]);
+  const [graphInfo, setGraphInfo] = useState<GraphInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -55,6 +64,7 @@ export default function Home() {
   useEffect(() => {
     if (!selectedFile) {
       setNodes([]);
+      setGraphInfo(null);
       return;
     }
 
@@ -69,6 +79,7 @@ export default function Home() {
         const rawData: RawGraphData = await response.json();
         const nodeList = transformData(rawData);
         setNodes(nodeList);
+        setGraphInfo(rawData.info || null);
         setLoading(false);
       } catch (err) {
         setError((err as Error).message);
@@ -106,7 +117,20 @@ export default function Home() {
     <div className="flex flex-col h-screen">
       {/* Header with file selection */}
       <header className="bg-zinc-800 dark:bg-zinc-950 text-white px-6 py-4 shadow-md z-10">
-        <h1 className="text-2xl font-semibold mb-3">Manjaro Package Dependency Graph</h1>
+        <h1 className="text-2xl font-semibold mb-3">Package Dependency Explorer</h1>
+        {graphInfo && (
+          <div className="flex flex-wrap gap-6 text-sm text-zinc-400 mb-3">
+            <span>
+              <strong className="text-zinc-300">OS:</strong> {graphInfo.os}
+            </span>
+            <span>
+              <strong className="text-zinc-300">Host:</strong> {graphInfo.hostname}
+            </span>
+            <span>
+              <strong className="text-zinc-300">Collected:</strong> {graphInfo.timestamp.replaceAll("-", "/").replace(/(\d{4}\/\d{2}\/\d{2})\/(\d{2})(\d{2})(\d{2})/, "$1 $2:$3:$4")}
+            </span>
+          </div>
+        )}
         <div className="flex flex-wrap gap-8 text-sm text-zinc-300 mb-3">
           <span>
             <select
