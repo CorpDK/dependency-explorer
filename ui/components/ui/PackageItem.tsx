@@ -1,4 +1,5 @@
 import { PackageNode } from "@/types/package";
+import { isOrphaned as checkIsOrphaned } from "@/lib/utils";
 
 type Variant = "explicit" | "dependency" | "orphaned";
 
@@ -38,7 +39,7 @@ export default function PackageItem({
   extraInfo,
 }: Readonly<PackageItemProps>) {
   const styles = variantStyles[variant];
-  const isOrphaned = !pkg.explicit && pkg.required_by.length === 0;
+  const isOrphaned = checkIsOrphaned(pkg);
 
   return (
     <button

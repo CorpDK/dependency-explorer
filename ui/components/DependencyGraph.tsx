@@ -6,9 +6,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
+import { useForceGraph } from "@/hooks/useForceGraph";
 import { PackageNode, PackageLink, ViewProps } from "@/types/package";
 import * as d3 from "d3";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 10;
+const ZOOM_STEP = 0.2;
 
 export default function DependencyGraph({
   nodes,
@@ -21,17 +26,15 @@ export default function DependencyGraph({
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(1);
-  const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(
     null,
   );
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
-    SVGSVGElement,
-    unknown
-  > | null>(null);
 
-  const MIN_ZOOM = 0.1;
-  const MAX_ZOOM = 10;
-  const ZOOM_STEP = 0.2;
+  // Memoize zoom extent to prevent unnecessary re-renders
+  const zoomExtent = useMemo<[number, number]>(
+    () => [MIN_ZOOM, MAX_ZOOM],
+    [],
+  );
 
   // Transform nodes to links when nodes change
   useEffect(() => {
@@ -62,150 +65,30 @@ export default function DependencyGraph({
     setLinks(newLinks);
   }, [nodes]);
 
-  // Render D3 visualization
-  useEffect(() => {
-    if (!svgRef.current || !containerRef.current || nodes.length === 0) return;
+  // Handle node click
+  const handleNodeClick = (node: PackageNode) => {
+    setSelectedNode(node);
+    setSidebarHidden(false);
+  };
 
-    // Stop and cleanup any existing simulation FIRST
-    if (simulationRef.current) {
-      simulationRef.current.stop();
-      simulationRef.current.on("tick", null);
-      simulationRef.current = null;
-    }
-
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
-
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
-
-    const g = svg.append("g");
-
-    // Zoom behavior - create or reuse
-    let zoom = zoomBehaviorRef.current;
-    if (zoom) {
-      // Update the zoom callback to use the new 'g' element
-      zoom.on("zoom", (event) => {
-        g.attr("transform", event.transform);
-        setCurrentZoom(event.transform.k);
-      });
-    } else {
-      zoom = d3
-        .zoom<SVGSVGElement, unknown>()
-        .scaleExtent([MIN_ZOOM, MAX_ZOOM])
-        .on("zoom", (event) => {
-          g.attr("transform", event.transform);
-          setCurrentZoom(event.transform.k);
-        });
-      zoomBehaviorRef.current = zoom;
-    }
-
-    svg.call(zoom);
-
-    // Links
-    const link = g
-      .append("g")
-      .attr("class", "links")
-      .selectAll("line")
-      .data(links)
-      .join("line")
-      .attr("class", (d) =>
-        d.type === "explicit" ? "link link-explicit" : "link link-dependency",
-      );
-
-    // Nodes
-    const node = g
-      .append("g")
-      .attr("class", "nodes")
-      .selectAll<SVGCircleElement, PackageNode>("circle")
-      .data(nodes)
-      .join("circle")
-      .attr("class", (d) => (d.explicit ? "node explicit" : "node dependency"))
-      .attr("r", 6)
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        setSelectedNode(d);
-        setSidebarHidden(false);
-      })
-      .call(
-        d3
-          .drag<SVGCircleElement, PackageNode>()
-          .on("start", (event) => {
-            if (!event.active && simulationRef.current)
-              simulationRef.current.alphaTarget(0.3).restart();
-            event.subject.fx = event.subject.x;
-            event.subject.fy = event.subject.y;
-          })
-          .on("drag", (event) => {
-            event.subject.fx = event.x;
-            event.subject.fy = event.y;
-          })
-          .on("end", (event) => {
-            if (!event.active && simulationRef.current)
-              simulationRef.current.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
-          }),
-      );
-
-    node.append("title").text((d) => d.id);
-
-    // Force simulation with aggressive settings for large graphs
-    const simulation = d3
-      .forceSimulation(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink(links)
-          .id((d: any) => d.id)
-          .distance(50),
-      )
-      .force("charge", d3.forceManyBody().strength(-100))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(15));
-
-    // Aggressive optimization for large graphs
-    if (nodes.length > 500) {
-      simulation.alphaDecay(0.05);
-      simulation.velocityDecay(0.6);
-    }
-
-    const tickHandler = () => {
-      link
-        .attr("x1", (d) => (d.source as PackageNode).x || 0)
-        .attr("y1", (d) => (d.source as PackageNode).y || 0)
-        .attr("x2", (d) => (d.target as PackageNode).x || 0)
-        .attr("y2", (d) => (d.target as PackageNode).y || 0);
-
-      node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
-    };
-
-    simulation.on("tick", tickHandler);
-
-    simulation.on("end", () => {
-      console.log("Simulation converged and stopped");
-    });
-
-    simulationRef.current = simulation;
-
-    const handleResize = () => {
-      if (!containerRef.current || !simulation) return;
-      const newWidth = containerRef.current.clientWidth;
-      const newHeight = containerRef.current.clientHeight;
-      simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-      simulation.alpha(0.3).restart();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      simulation.stop();
-      simulation.on("tick", null);
-      svg.selectAll("*").remove();
-      // Don't remove zoom behavior - we want to keep it for the controls
-    };
-  }, [nodes, links]);
+  // Render D3 visualization using extended hook
+  useForceGraph({
+    svgRef,
+    containerRef,
+    nodes,
+    links,
+    onNodeClick: handleNodeClick,
+    zoomBehaviorRef,
+    zoomExtent,
+    onZoomChange: setCurrentZoom,
+    enableResize: true,
+    nodeRadius: 6,
+    linkDistance: 50,
+    chargeStrength: -100,
+    collisionRadius: 15,
+    performanceOptimization: true,
+    showNodeTitle: true,
+  });
 
   // Update selected node visual indicator
   useEffect(() => {

@@ -3,12 +3,23 @@ import * as d3 from "d3";
 import { PackageNode, PackageLink } from "@/types/package";
 
 interface UseForceGraphProps {
-  svgRef: React.RefObject<SVGSVGElement>;
-  containerRef: React.RefObject<HTMLDivElement>;
+  svgRef: React.RefObject<SVGSVGElement | null>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   nodes: PackageNode[];
   links: PackageLink[];
   onNodeClick: (node: PackageNode) => void;
   highlightedNodeId?: string;
+  // Advanced options
+  zoomBehaviorRef?: React.MutableRefObject<d3.ZoomBehavior<SVGSVGElement, unknown> | null>;
+  zoomExtent?: [number, number];
+  onZoomChange?: (scale: number) => void;
+  enableResize?: boolean;
+  nodeRadius?: number;
+  linkDistance?: number;
+  chargeStrength?: number;
+  collisionRadius?: number;
+  performanceOptimization?: boolean;
+  showNodeTitle?: boolean;
 }
 
 export function useForceGraph({
@@ -18,18 +29,31 @@ export function useForceGraph({
   links,
   onNodeClick,
   highlightedNodeId,
+  zoomBehaviorRef,
+  zoomExtent = [0.1, 10],
+  onZoomChange,
+  enableResize = false,
+  nodeRadius = 6,
+  linkDistance = 80,
+  chargeStrength = -200,
+  collisionRadius = 20,
+  performanceOptimization = false,
+  showNodeTitle = true,
 }: UseForceGraphProps) {
   const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(
     null,
   );
+  const onNodeClickRef = useRef(onNodeClick);
+  const onZoomChangeRef = useRef(onZoomChange);
+
+  // Keep callback refs up to date
+  useEffect(() => {
+    onNodeClickRef.current = onNodeClick;
+    onZoomChangeRef.current = onZoomChange;
+  });
 
   useEffect(() => {
-    if (
-      !svgRef.current ||
-      !containerRef.current ||
-      nodes.length === 0
-    )
-      return;
+    if (!svgRef.current || !containerRef.current || nodes.length === 0) return;
 
     // Stop existing simulation
     if (simulationRef.current) {
@@ -46,13 +70,26 @@ export function useForceGraph({
 
     const g = svg.append("g");
 
-    // Zoom behavior
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 10])
-      .on("zoom", (event) => {
+    // Zoom behavior - create or reuse
+    let zoom: d3.ZoomBehavior<SVGSVGElement, unknown>;
+    if (zoomBehaviorRef?.current) {
+      zoom = zoomBehaviorRef.current;
+      zoom.on("zoom", (event) => {
         g.attr("transform", event.transform);
+        onZoomChangeRef.current?.(event.transform.k);
       });
+    } else {
+      zoom = d3
+        .zoom<SVGSVGElement, unknown>()
+        .scaleExtent(zoomExtent)
+        .on("zoom", (event) => {
+          g.attr("transform", event.transform);
+          onZoomChangeRef.current?.(event.transform.k);
+        });
+      if (zoomBehaviorRef) {
+        zoomBehaviorRef.current = zoom;
+      }
+    }
 
     svg.call(zoom);
 
@@ -75,10 +112,14 @@ export function useForceGraph({
       .data(nodes)
       .join("circle")
       .attr("class", (d) => (d.explicit ? "node explicit" : "node dependency"))
-      .attr("r", (d) => (highlightedNodeId && d.id === highlightedNodeId ? 10 : 6))
+      .attr("r", (d) =>
+        highlightedNodeId && d.id === highlightedNodeId
+          ? nodeRadius * 1.67
+          : nodeRadius,
+      )
       .on("click", (event, d) => {
         event.stopPropagation();
-        onNodeClick(d);
+        onNodeClickRef.current(d);
       })
       .call(
         d3
@@ -101,7 +142,9 @@ export function useForceGraph({
           }),
       );
 
-    node.append("title").text((d) => `${d.id}\nv${d.version}`);
+    if (showNodeTitle) {
+      node.append("title").text((d) => `${d.id}\nv${d.version}`);
+    }
 
     // Force simulation
     const simulation = d3
@@ -111,11 +154,17 @@ export function useForceGraph({
         d3
           .forceLink(links)
           .id((d: any) => d.id)
-          .distance(80),
+          .distance(linkDistance),
       )
-      .force("charge", d3.forceManyBody().strength(-200))
+      .force("charge", d3.forceManyBody().strength(chargeStrength))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(20));
+      .force("collision", d3.forceCollide().radius(collisionRadius));
+
+    // Performance optimization for large graphs
+    if (performanceOptimization && nodes.length > 500) {
+      simulation.alphaDecay(0.05);
+      simulation.velocityDecay(0.6);
+    }
 
     simulation.on("tick", () => {
       link
@@ -127,14 +176,51 @@ export function useForceGraph({
       node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
     });
 
+    if (performanceOptimization) {
+      simulation.on("end", () => {
+        console.log("Simulation converged and stopped");
+      });
+    }
+
     simulationRef.current = simulation;
 
+    // Resize handling
+    const handleResize = () => {
+      if (!containerRef.current || !simulation) return;
+      const newWidth = containerRef.current.clientWidth;
+      const newHeight = containerRef.current.clientHeight;
+      simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
+      simulation.alpha(0.3).restart();
+    };
+
+    if (enableResize) {
+      window.addEventListener("resize", handleResize);
+    }
+
     return () => {
+      if (enableResize) {
+        window.removeEventListener("resize", handleResize);
+      }
       simulation.stop();
       simulation.on("tick", null);
       svg.selectAll("*").remove();
     };
-  }, [svgRef, containerRef, nodes, links, onNodeClick, highlightedNodeId]);
+  }, [
+    svgRef,
+    containerRef,
+    nodes,
+    links,
+    highlightedNodeId,
+    zoomBehaviorRef,
+    zoomExtent,
+    enableResize,
+    nodeRadius,
+    linkDistance,
+    chargeStrength,
+    collisionRadius,
+    performanceOptimization,
+    showNodeTitle,
+  ]);
 
   return simulationRef;
 }

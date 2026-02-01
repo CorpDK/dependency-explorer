@@ -4,7 +4,7 @@ import PackageColumn from "@/components/list/PackageColumn";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
-import { collectDependencies, fuzzyMatch } from "@/lib/utils";
+import { collectDependencies, fuzzyMatch, sortPackagesByName } from "@/lib/utils";
 import { PackageNode, ViewProps } from "@/types/package";
 import { useMemo, useState } from "react";
 
@@ -86,12 +86,12 @@ export default function PackageList({
 
       return [
         ...selected,
-        ...dependsOnSelected.sort((a, b) => a.id.localeCompare(b.id)),
-        ...others.sort((a, b) => a.id.localeCompare(b.id)),
+        ...sortPackagesByName(dependsOnSelected),
+        ...sortPackagesByName(others),
       ];
     }
 
-    return [...selected, ...remaining.sort((a, b) => a.id.localeCompare(b.id))];
+    return [...selected, ...sortPackagesByName(remaining)];
   }, [nodes, explicitSearchQuery, selectedPackage, explicitDependenciesMap]);
 
   // Filter and sort dependency packages
@@ -116,12 +116,12 @@ export default function PackageList({
 
       return [
         ...selected,
-        ...isDependencyOf.sort((a, b) => a.id.localeCompare(b.id)),
-        ...others.sort((a, b) => a.id.localeCompare(b.id)),
+        ...sortPackagesByName(isDependencyOf),
+        ...sortPackagesByName(others),
       ];
     }
 
-    return [...selected, ...remaining.sort((a, b) => a.id.localeCompare(b.id))];
+    return [...selected, ...sortPackagesByName(remaining)];
   }, [nodes, dependencySearchQuery, selectedPackage, explicitDependenciesMap]);
 
   const explicitCount = nodes.filter((n) => n.explicit).length;

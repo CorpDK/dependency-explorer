@@ -91,6 +91,11 @@ export function isOrphaned(pkg: PackageNode): boolean {
   return !pkg.explicit && pkg.required_by.length === 0;
 }
 
+// Sort packages alphabetically by name
+export function sortPackagesByName(packages: PackageNode[]): PackageNode[] {
+  return packages.sort((a, b) => a.id.localeCompare(b.id));
+}
+
 // Count explicit and dependency packages
 export function countPackages(nodes: PackageNode[]): {
   explicit: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { PackageNode, PackageLink, ViewProps } from "@/types/package";
-import { fuzzyMatch, collectPackageTree } from "@/lib/utils";
+import { fuzzyMatch, collectPackageTree, sortPackagesByName } from "@/lib/utils";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
@@ -9,11 +9,17 @@ import SearchInput from "@/components/ui/SearchInput";
 import PackageItem from "@/components/ui/PackageItem";
 import FilterButton from "@/components/ui/FilterButton";
 import Sidebar from "@/components/graph/Sidebar";
+import ZoomControls from "@/components/graph/ZoomControls";
 import { useForceGraph } from "@/hooks/useForceGraph";
+import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 
 type FilterType = "all" | "explicit" | "dependency";
+
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 10;
+const ZOOM_STEP = 0.2;
 
 export default function Investigate({
   nodes,
@@ -28,8 +34,18 @@ export default function Investigate({
   const [selectedGraphNode, setSelectedGraphNode] =
     useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
+  const [currentZoom, setCurrentZoom] = useState(1);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(
+    null,
+  );
+
+  // Memoize zoom extent to prevent unnecessary re-renders
+  const zoomExtent = useMemo<[number, number]>(
+    () => [MIN_ZOOM, MAX_ZOOM],
+    [],
+  );
 
   // Filter packages based on search and type filter
   const filteredPackages = useMemo(() => {
@@ -41,7 +57,7 @@ export default function Investigate({
       filtered = filtered.filter((n) => !n.explicit);
     }
 
-    return filtered.sort((a, b) => a.id.localeCompare(b.id));
+    return sortPackagesByName(filtered);
   }, [nodes, searchQuery, filterType]);
 
   // Get the sub-graph for the selected package
@@ -83,6 +99,16 @@ export default function Investigate({
     links: subGraphData.links,
     onNodeClick: handleNodeClick,
     highlightedNodeId: selectedPackage?.id,
+    zoomBehaviorRef,
+    zoomExtent,
+    onZoomChange: setCurrentZoom,
+    enableResize: true,
+    nodeRadius: 6,
+    linkDistance: 50,
+    chargeStrength: -100,
+    collisionRadius: 15,
+    performanceOptimization: true,
+    showNodeTitle: true,
   });
 
   // Update selected node visual indicators
@@ -123,6 +149,16 @@ export default function Investigate({
     setSidebarHidden(true);
     setSelectedGraphNode(null);
   };
+
+  const { handleZoomIn, handleZoomOut, handleZoomChange, handleZoomReset } =
+    useZoomHandlers({
+      svgRef,
+      zoomBehaviorRef,
+      currentZoom,
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      zoomStep: ZOOM_STEP,
+    });
 
   if (loading) {
     return <LoadingState message="Loading packages..." />;
@@ -222,9 +258,18 @@ export default function Investigate({
             </div>
             <div className="flex-1 relative" ref={containerRef}>
               <svg
-                className="w-full h-full cursor-grab active:cursor-grabbing"
+                className="w-full h-full cursor-grab active:cursor-grabbing pointer-events-auto"
                 ref={svgRef}
               ></svg>
+              <ZoomControls
+                currentZoom={currentZoom}
+                minZoom={MIN_ZOOM}
+                maxZoom={MAX_ZOOM}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomChange={handleZoomChange}
+                onReset={handleZoomReset}
+              />
             </div>
           </>
         ) : (

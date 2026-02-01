@@ -5,54 +5,11 @@ import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import PackageItem from "@/components/ui/PackageItem";
 import SearchInput from "@/components/ui/SearchInput";
-import { fuzzyMatch, isOrphaned } from "@/lib/utils";
+import DependencyIndicator from "@/components/ui/DependencyIndicator";
+import DependencyInfo from "@/components/ui/DependencyInfo";
+import { fuzzyMatch, isOrphaned, sortPackagesByName } from "@/lib/utils";
 import { PackageNode, ViewProps } from "@/types/package";
 import { useMemo, useState } from "react";
-
-function DependencyIndicator({ pkg }: Readonly<{ pkg: PackageNode }>) {
-  const orphaned = isOrphaned(pkg);
-
-  let color: string;
-  let title: string;
-
-  if (pkg.explicit) {
-    color = "bg-green-500";
-    title = "Explicitly installed";
-  } else if (orphaned) {
-    color = "bg-orange-500";
-    title = "Orphaned dependency";
-  } else {
-    color = "bg-blue-500";
-    title = "Dependency";
-  }
-
-  return (
-    <span
-      className={`absolute top-2 right-2 w-2 h-2 rounded-full ${color}`}
-      title={title}
-    ></span>
-  );
-}
-
-function DependencyInfo({ pkg }: Readonly<{ pkg: PackageNode }>) {
-  const orphaned = isOrphaned(pkg);
-
-  let text: string;
-
-  if (pkg.explicit) {
-    text = "Explicitly installed";
-  } else if (orphaned) {
-    text = "Orphaned dependency";
-  } else {
-    text = `Required by ${pkg.required_by.length} package${pkg.required_by.length === 1 ? "" : "s"}`;
-  }
-
-  return (
-    <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
-      {text}
-    </div>
-  );
-}
 
 export default function OrphanedPackages({
   nodes,
@@ -71,19 +28,20 @@ export default function OrphanedPackages({
 
   // Filter and sort orphaned packages based on search query
   const sortedOrphanedPackages = useMemo(() => {
-    return orphanedPackages
-      .filter((pkg) => fuzzyMatch(searchQuery, pkg.id))
-      .sort((a, b) => a.id.localeCompare(b.id));
+    const filtered = orphanedPackages.filter((pkg) =>
+      fuzzyMatch(searchQuery, pkg.id),
+    );
+    return sortPackagesByName(filtered);
   }, [orphanedPackages, searchQuery]);
 
   // Get the dependencies of the selected package
   const selectedPackageDependencies = useMemo(() => {
     if (!selectedPackage) return [];
 
-    return selectedPackage.depends_on
+    const deps = selectedPackage.depends_on
       .map((depId) => nodes.find((n) => n.id === depId))
-      .filter((node): node is PackageNode => node !== undefined)
-      .sort((a, b) => a.id.localeCompare(b.id));
+      .filter((node): node is PackageNode => node !== undefined);
+    return sortPackagesByName(deps);
   }, [selectedPackage, nodes]);
 
   const handlePackageClick = (pkg: PackageNode) => {
