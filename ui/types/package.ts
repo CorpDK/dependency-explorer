@@ -8,6 +8,12 @@ export interface PackageNode extends d3.SimulationNodeDatum {
   required_by: string[];
 }
 
+export interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
+  source: string | PackageNode;
+  target: string | PackageNode;
+  type: "explicit" | "dependency";
+}
+
 export interface GraphInfo {
   os: string;
   hostname: string;

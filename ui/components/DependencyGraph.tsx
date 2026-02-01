@@ -6,15 +6,9 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
-import { PackageNode, ViewProps } from "@/types/package";
+import { PackageNode, PackageLink, ViewProps } from "@/types/package";
 import * as d3 from "d3";
 import { useEffect, useRef, useState } from "react";
-
-interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
-  source: string | PackageNode;
-  target: string | PackageNode;
-  type: "explicit" | "dependency";
-}
 
 export default function DependencyGraph({
   nodes,

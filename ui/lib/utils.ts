@@ -69,6 +69,23 @@ export function collectDependencies(
   });
 }
 
+// Collect full dependency tree (package and all transitive dependencies)
+export function collectPackageTree(
+  packageId: string,
+  nodes: PackageNode[],
+  result: Set<string>,
+): void {
+  if (result.has(packageId)) return;
+  result.add(packageId);
+
+  const pkg = nodes.find((n) => n.id === packageId);
+  if (!pkg) return;
+
+  pkg.depends_on.forEach((dep) => {
+    collectPackageTree(dep, nodes, result);
+  });
+}
+
 // Check if a package is orphaned (dependency with no parents)
 export function isOrphaned(pkg: PackageNode): boolean {
   return !pkg.explicit && pkg.required_by.length === 0;

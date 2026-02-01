@@ -1,64 +1,19 @@
 "use client";
 
-import { PackageNode, ViewProps } from "@/types/package";
-import { fuzzyMatch } from "@/lib/utils";
+import { PackageNode, PackageLink, ViewProps } from "@/types/package";
+import { fuzzyMatch, collectPackageTree } from "@/lib/utils";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
 import SearchInput from "@/components/ui/SearchInput";
 import PackageItem from "@/components/ui/PackageItem";
+import FilterButton from "@/components/ui/FilterButton";
 import Sidebar from "@/components/graph/Sidebar";
+import { useForceGraph } from "@/hooks/useForceGraph";
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 
 type FilterType = "all" | "explicit" | "dependency";
-
-interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
-  source: string | PackageNode;
-  target: string | PackageNode;
-  type: "explicit" | "dependency";
-}
-
-// Collect full dependency tree (only downward dependencies, not dependents)
-function collectPackageTree(
-  packageId: string,
-  nodes: PackageNode[],
-  result: Set<string>,
-): void {
-  if (result.has(packageId)) return;
-  result.add(packageId);
-
-  const pkg = nodes.find((n) => n.id === packageId);
-  if (!pkg) return;
-
-  // Collect all dependencies recursively (transitive dependencies)
-  pkg.depends_on.forEach((dep) => {
-    collectPackageTree(dep, nodes, result);
-  });
-}
-
-function FilterButton({
-  active,
-  onClick,
-  children,
-}: Readonly<{
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}>) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-        active
-          ? "bg-blue-500 text-white"
-          : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 export default function Investigate({
   nodes,
@@ -75,9 +30,6 @@ export default function Investigate({
   const [sidebarHidden, setSidebarHidden] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(
-    null,
-  );
 
   // Filter packages based on search and type filter
   const filteredPackages = useMemo(() => {
@@ -117,127 +69,21 @@ export default function Investigate({
     return { nodes: subNodes, links: subLinks };
   }, [selectedPackage, nodes]);
 
-  // Render D3 sub-graph
-  useEffect(() => {
-    if (
-      !svgRef.current ||
-      !containerRef.current ||
-      !selectedPackage ||
-      subGraphData.nodes.length === 0
-    )
-      return;
+  // Handle node click
+  const handleNodeClick = (node: PackageNode) => {
+    setSelectedGraphNode(node);
+    setSidebarHidden(false);
+  };
 
-    // Stop existing simulation
-    if (simulationRef.current) {
-      simulationRef.current.stop();
-      simulationRef.current.on("tick", null);
-      simulationRef.current = null;
-    }
-
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
-
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
-
-    const g = svg.append("g");
-
-    // Simple zoom behavior
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 10])
-      .on("zoom", (event) => {
-        g.attr("transform", event.transform);
-      });
-
-    svg.call(zoom);
-
-    // Links
-    const link = g
-      .append("g")
-      .attr("class", "links")
-      .selectAll("line")
-      .data(subGraphData.links)
-      .join("line")
-      .attr("class", (d) =>
-        d.type === "explicit" ? "link link-explicit" : "link link-dependency",
-      );
-
-    // Nodes
-    const node = g
-      .append("g")
-      .attr("class", "nodes")
-      .selectAll<SVGCircleElement, PackageNode>("circle")
-      .data(subGraphData.nodes)
-      .join("circle")
-      .attr("class", (d) => (d.explicit ? "node explicit" : "node dependency"))
-      .attr("r", (d) => (d.id === selectedPackage.id ? 10 : 6))
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        setSelectedGraphNode(d);
-        setSidebarHidden(false);
-      })
-      .call(
-        d3
-          .drag<SVGCircleElement, PackageNode>()
-          .on("start", (event) => {
-            if (!event.active && simulationRef.current)
-              simulationRef.current.alphaTarget(0.3).restart();
-            event.subject.fx = event.subject.x;
-            event.subject.fy = event.subject.y;
-          })
-          .on("drag", (event) => {
-            event.subject.fx = event.x;
-            event.subject.fy = event.y;
-          })
-          .on("end", (event) => {
-            if (!event.active && simulationRef.current)
-              simulationRef.current.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
-          }),
-      );
-
-    node.append("title").text((d) => `${d.id}\nv${d.version}`);
-
-    // Highlight the selected package
-    svg
-      .selectAll(".node")
-      .filter((d: any) => d.id === selectedPackage.id)
-      .classed("selected", true);
-
-    // Force simulation
-    const simulation = d3
-      .forceSimulation(subGraphData.nodes)
-      .force(
-        "link",
-        d3
-          .forceLink(subGraphData.links)
-          .id((d: any) => d.id)
-          .distance(80),
-      )
-      .force("charge", d3.forceManyBody().strength(-200))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(20));
-
-    simulation.on("tick", () => {
-      link
-        .attr("x1", (d) => (d.source as PackageNode).x || 0)
-        .attr("y1", (d) => (d.source as PackageNode).y || 0)
-        .attr("x2", (d) => (d.target as PackageNode).x || 0)
-        .attr("y2", (d) => (d.target as PackageNode).y || 0);
-
-      node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
-    });
-
-    simulationRef.current = simulation;
-
-    return () => {
-      simulation.stop();
-      simulation.on("tick", null);
-      svg.selectAll("*").remove();
-    };
-  }, [selectedPackage, subGraphData]);
+  // Render D3 sub-graph using custom hook
+  useForceGraph({
+    svgRef,
+    containerRef,
+    nodes: subGraphData.nodes,
+    links: subGraphData.links,
+    onNodeClick: handleNodeClick,
+    highlightedNodeId: selectedPackage?.id,
+  });
 
   // Update selected node visual indicators
   useEffect(() => {
