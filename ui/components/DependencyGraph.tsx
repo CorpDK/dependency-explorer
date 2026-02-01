@@ -1,29 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
-import { PackageNode, ViewProps } from "@/types/package";
-import LoadingState from "@/components/ui/LoadingState";
-import ErrorState from "@/components/ui/ErrorState";
-import EmptyState from "@/components/ui/EmptyState";
 import Sidebar from "@/components/graph/Sidebar";
 import ZoomControls from "@/components/graph/ZoomControls";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import LoadingState from "@/components/ui/LoadingState";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
+import { PackageNode, ViewProps } from "@/types/package";
+import * as d3 from "d3";
+import { useEffect, useRef, useState } from "react";
 
 interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   source: string | PackageNode;
   target: string | PackageNode;
 }
 
-export default function DependencyGraph({ nodes, loading, error }: Readonly<ViewProps>) {
+export default function DependencyGraph({
+  nodes,
+  loading,
+  error,
+}: Readonly<ViewProps>) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [links, setLinks] = useState<PackageLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(1);
-  const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(null);
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const simulationRef = useRef<d3.Simulation<PackageNode, PackageLink> | null>(
+    null,
+  );
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
+    SVGSVGElement,
+    unknown
+  > | null>(null);
 
   const MIN_ZOOM = 0.1;
   const MAX_ZOOM = 10;
@@ -85,7 +94,8 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
         setCurrentZoom(event.transform.k);
       });
     } else {
-      zoom = d3.zoom<SVGSVGElement, unknown>()
+      zoom = d3
+        .zoom<SVGSVGElement, unknown>()
         .scaleExtent([MIN_ZOOM, MAX_ZOOM])
         .on("zoom", (event) => {
           g.attr("transform", event.transform);
@@ -120,9 +130,11 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
         setSidebarHidden(false);
       })
       .call(
-        d3.drag<SVGCircleElement, PackageNode>()
+        d3
+          .drag<SVGCircleElement, PackageNode>()
           .on("start", (event) => {
-            if (!event.active && simulationRef.current) simulationRef.current.alphaTarget(0.3).restart();
+            if (!event.active && simulationRef.current)
+              simulationRef.current.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
           })
@@ -131,10 +143,11 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
             event.subject.fy = event.y;
           })
           .on("end", (event) => {
-            if (!event.active && simulationRef.current) simulationRef.current.alphaTarget(0);
+            if (!event.active && simulationRef.current)
+              simulationRef.current.alphaTarget(0);
             event.subject.fx = null;
             event.subject.fy = null;
-          })
+          }),
       );
 
     node.append("title").text((d) => d.id);
@@ -147,7 +160,7 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
         d3
           .forceLink(links)
           .id((d: any) => d.id)
-          .distance(50)
+          .distance(50),
       )
       .force("charge", d3.forceManyBody().strength(-100))
       .force("center", d3.forceCenter(width / 2, height / 2))
@@ -224,14 +237,15 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
     setSelectedNode(null);
   };
 
-  const { handleZoomIn, handleZoomOut, handleZoomChange, handleZoomReset } = useZoomHandlers({
-    svgRef,
-    zoomBehaviorRef,
-    currentZoom,
-    minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM,
-    zoomStep: ZOOM_STEP,
-  });
+  const { handleZoomIn, handleZoomOut, handleZoomChange, handleZoomReset } =
+    useZoomHandlers({
+      svgRef,
+      zoomBehaviorRef,
+      currentZoom,
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      zoomStep: ZOOM_STEP,
+    });
 
   if (loading) {
     return <LoadingState message="Loading dependency graph..." />;
@@ -242,13 +256,18 @@ export default function DependencyGraph({ nodes, loading, error }: Readonly<View
   }
 
   if (nodes.length === 0) {
-    return <EmptyState message="Please select a data file from the dropdown above to visualize the dependency graph." />;
+    return (
+      <EmptyState message="Please select a data file from the dropdown above to visualize the dependency graph." />
+    );
   }
 
   return (
     <div className="h-full w-full flex overflow-hidden relative bg-zinc-50 dark:bg-zinc-900">
       <div className="flex-1 relative" ref={containerRef}>
-        <svg className="w-full h-full cursor-grab active:cursor-grabbing pointer-events-auto" ref={svgRef}></svg>
+        <svg
+          className="w-full h-full cursor-grab active:cursor-grabbing pointer-events-auto"
+          ref={svgRef}
+        ></svg>
         <ZoomControls
           currentZoom={currentZoom}
           minZoom={MIN_ZOOM}

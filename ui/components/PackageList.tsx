@@ -1,17 +1,24 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { PackageNode, ViewProps } from "@/types/package";
-import { fuzzyMatch, collectDependencies } from "@/lib/utils";
-import LoadingState from "@/components/ui/LoadingState";
-import ErrorState from "@/components/ui/ErrorState";
-import EmptyState from "@/components/ui/EmptyState";
 import PackageColumn from "@/components/list/PackageColumn";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import LoadingState from "@/components/ui/LoadingState";
+import { collectDependencies, fuzzyMatch } from "@/lib/utils";
+import { PackageNode, ViewProps } from "@/types/package";
+import { useMemo, useState } from "react";
 
-export default function PackageList({ nodes, loading, error }: Readonly<ViewProps>) {
+export default function PackageList({
+  nodes,
+  loading,
+  error,
+}: Readonly<ViewProps>) {
   const [explicitSearchQuery, setExplicitSearchQuery] = useState("");
   const [dependencySearchQuery, setDependencySearchQuery] = useState("");
-  const [selectedPackage, setSelectedPackage] = useState<{ id: string; type: "explicit" | "dependency" } | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<{
+    id: string;
+    type: "explicit" | "dependency";
+  } | null>(null);
 
   // Compute which explicit packages depend on each dependency package
   const dependencyMap = useMemo(() => {
@@ -40,76 +47,91 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
   const explicitDependenciesMap = useMemo(() => {
     const depMap = new Map<string, Set<string>>();
 
-    nodes.filter((n) => n.explicit).forEach((explicitPkg) => {
-      const allDeps = new Set<string>();
-      const visited = new Set<string>();
-      collectDependencies(explicitPkg.id, nodes, visited, allDeps);
-      depMap.set(explicitPkg.id, allDeps);
-    });
+    nodes
+      .filter((n) => n.explicit)
+      .forEach((explicitPkg) => {
+        const allDeps = new Set<string>();
+        const visited = new Set<string>();
+        collectDependencies(explicitPkg.id, nodes, visited, allDeps);
+        depMap.set(explicitPkg.id, allDeps);
+      });
 
     return depMap;
   }, [nodes]);
 
   // Filter and sort explicit packages
   const sortedExplicitPackages = useMemo(() => {
-    let filtered = nodes.filter((n) => n.explicit && fuzzyMatch(explicitSearchQuery, n.id));
+    let filtered = nodes.filter(
+      (n) => n.explicit && fuzzyMatch(explicitSearchQuery, n.id),
+    );
 
-    const selected = selectedPackage?.type === "explicit"
-      ? filtered.filter((pkg) => pkg.id === selectedPackage.id)
-      : [];
+    const selected =
+      selectedPackage?.type === "explicit"
+        ? filtered.filter((pkg) => pkg.id === selectedPackage.id)
+        : [];
 
     const remaining = filtered.filter((pkg) => pkg.id !== selectedPackage?.id);
 
     if (selectedPackage?.type === "dependency") {
-      const dependsOnSelected = remaining.filter((pkg) => explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id));
-      const others = remaining.filter((pkg) => !(explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id) ?? false));
+      const dependsOnSelected = remaining.filter((pkg) =>
+        explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id),
+      );
+      const others = remaining.filter(
+        (pkg) =>
+          !(
+            explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id) ??
+            false
+          ),
+      );
 
       return [
         ...selected,
         ...dependsOnSelected.sort((a, b) => a.id.localeCompare(b.id)),
-        ...others.sort((a, b) => a.id.localeCompare(b.id))
+        ...others.sort((a, b) => a.id.localeCompare(b.id)),
       ];
     }
 
-    return [
-      ...selected,
-      ...remaining.sort((a, b) => a.id.localeCompare(b.id))
-    ];
+    return [...selected, ...remaining.sort((a, b) => a.id.localeCompare(b.id))];
   }, [nodes, explicitSearchQuery, selectedPackage, explicitDependenciesMap]);
 
   // Filter and sort dependency packages
   const sortedDependencyPackages = useMemo(() => {
-    let filtered = nodes.filter((n) => !n.explicit && fuzzyMatch(dependencySearchQuery, n.id));
+    let filtered = nodes.filter(
+      (n) => !n.explicit && fuzzyMatch(dependencySearchQuery, n.id),
+    );
 
-    const selected = selectedPackage?.type === "dependency"
-      ? filtered.filter((pkg) => pkg.id === selectedPackage.id)
-      : [];
+    const selected =
+      selectedPackage?.type === "dependency"
+        ? filtered.filter((pkg) => pkg.id === selectedPackage.id)
+        : [];
 
     const remaining = filtered.filter((pkg) => pkg.id !== selectedPackage?.id);
 
     if (selectedPackage?.type === "explicit") {
       const selectedDeps = explicitDependenciesMap.get(selectedPackage.id);
-      const isDependencyOf = remaining.filter((pkg) => selectedDeps?.has(pkg.id));
-      const others = remaining.filter((pkg) => !(selectedDeps?.has(pkg.id)));
+      const isDependencyOf = remaining.filter((pkg) =>
+        selectedDeps?.has(pkg.id),
+      );
+      const others = remaining.filter((pkg) => !selectedDeps?.has(pkg.id));
 
       return [
         ...selected,
         ...isDependencyOf.sort((a, b) => a.id.localeCompare(b.id)),
-        ...others.sort((a, b) => a.id.localeCompare(b.id))
+        ...others.sort((a, b) => a.id.localeCompare(b.id)),
       ];
     }
 
-    return [
-      ...selected,
-      ...remaining.sort((a, b) => a.id.localeCompare(b.id))
-    ];
+    return [...selected, ...remaining.sort((a, b) => a.id.localeCompare(b.id))];
   }, [nodes, dependencySearchQuery, selectedPackage, explicitDependenciesMap]);
 
   const explicitCount = nodes.filter((n) => n.explicit).length;
   const dependencyCount = nodes.length - explicitCount;
 
   const handleExplicitClick = (pkg: PackageNode) => {
-    if (selectedPackage?.id === pkg.id && selectedPackage?.type === "explicit") {
+    if (
+      selectedPackage?.id === pkg.id &&
+      selectedPackage?.type === "explicit"
+    ) {
       setSelectedPackage(null);
     } else {
       setSelectedPackage({ id: pkg.id, type: "explicit" });
@@ -118,7 +140,10 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
   };
 
   const handleDependencyClick = (pkg: PackageNode) => {
-    if (selectedPackage?.id === pkg.id && selectedPackage?.type === "dependency") {
+    if (
+      selectedPackage?.id === pkg.id &&
+      selectedPackage?.type === "dependency"
+    ) {
       setSelectedPackage(null);
     } else {
       setSelectedPackage({ id: pkg.id, type: "dependency" });
@@ -128,7 +153,8 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
 
   const isExplicitHighlighted = (pkg: PackageNode): boolean => {
     if (!selectedPackage) return false;
-    if (selectedPackage.type === "explicit" && selectedPackage.id === pkg.id) return true;
+    if (selectedPackage.type === "explicit" && selectedPackage.id === pkg.id)
+      return true;
     if (selectedPackage.type === "dependency") {
       const deps = explicitDependenciesMap.get(pkg.id);
       return deps?.has(selectedPackage.id) ?? false;
@@ -138,7 +164,8 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
 
   const isDependencyHighlighted = (pkg: PackageNode): boolean => {
     if (!selectedPackage) return false;
-    if (selectedPackage.type === "dependency" && selectedPackage.id === pkg.id) return true;
+    if (selectedPackage.type === "dependency" && selectedPackage.id === pkg.id)
+      return true;
     if (selectedPackage.type === "explicit") {
       const deps = explicitDependenciesMap.get(selectedPackage.id);
       return deps?.has(pkg.id) ?? false;
@@ -155,7 +182,9 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
   }
 
   if (nodes.length === 0) {
-    return <EmptyState message="Please select a data file from the dropdown above to view package lists." />;
+    return (
+      <EmptyState message="Please select a data file from the dropdown above to view package lists." />
+    );
   }
 
   return (
@@ -189,7 +218,9 @@ export default function PackageList({ nodes, loading, error }: Readonly<ViewProp
           renderExtraInfo={(pkg) => {
             const explicitParents = dependencyMap.get(pkg.id);
             const parentsList = explicitParents
-              ? Array.from<string>(explicitParents).sort((a, b) => a.localeCompare(b)).join(", ")
+              ? Array.from<string>(explicitParents)
+                  .sort((a, b) => a.localeCompare(b))
+                  .join(", ")
               : "";
             return (
               <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">

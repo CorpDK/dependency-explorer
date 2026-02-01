@@ -17,11 +17,16 @@ interface LegendProps {
   totalCount: number;
 }
 
-export default function Legend({ explicitCount, dependencyCount, totalCount }: Readonly<LegendProps>) {
+export default function Legend({
+  explicitCount,
+  dependencyCount,
+  totalCount,
+}: Readonly<LegendProps>) {
   return (
     <div className="flex flex-wrap gap-8 text-sm text-zinc-300 mb-3">
       <span>
-        {totalCount} packages ({explicitCount} explicit, {dependencyCount} dependencies)
+        {totalCount} packages ({explicitCount} explicit, {dependencyCount}{" "}
+        dependencies)
       </span>
       <LegendItem color="bg-green-500" label="Explicit" />
       <LegendItem color="bg-blue-500" label="Dependency" />

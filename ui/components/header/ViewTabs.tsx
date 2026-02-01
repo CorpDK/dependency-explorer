@@ -26,7 +26,10 @@ interface ViewTabsProps {
   onViewChange: (mode: ViewMode) => void;
 }
 
-export default function ViewTabs({ viewMode, onViewChange }: Readonly<ViewTabsProps>) {
+export default function ViewTabs({
+  viewMode,
+  onViewChange,
+}: Readonly<ViewTabsProps>) {
   return (
     <div className="flex gap-1 border-t border-zinc-700 pt-3">
       <Tab active={viewMode === "list"} onClick={() => onViewChange("list")}>
@@ -35,7 +38,10 @@ export default function ViewTabs({ viewMode, onViewChange }: Readonly<ViewTabsPr
       <Tab active={viewMode === "graph"} onClick={() => onViewChange("graph")}>
         Graph View
       </Tab>
-      <Tab active={viewMode === "orphaned"} onClick={() => onViewChange("orphaned")}>
+      <Tab
+        active={viewMode === "orphaned"}
+        onClick={() => onViewChange("orphaned")}
+      >
         Orphaned Packages
       </Tab>
     </div>

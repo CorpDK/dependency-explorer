@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import DependencyGraph from "@/components/DependencyGraph";
-import PackageList from "@/components/PackageList";
 import OrphanedPackages from "@/components/OrphanedPackages";
-import SystemInfo from "@/components/header/SystemInfo";
+import PackageList from "@/components/PackageList";
 import FileSelector from "@/components/header/FileSelector";
-import ViewTabs from "@/components/header/ViewTabs";
 import Legend from "@/components/header/Legend";
-import { ViewMode, PackageNode, GraphInfo, RawGraphData } from "@/types/package";
-import { transformData, countPackages } from "@/lib/utils";
+import SystemInfo from "@/components/header/SystemInfo";
+import ViewTabs from "@/components/header/ViewTabs";
+import { countPackages, transformData } from "@/lib/utils";
+import {
+  GraphInfo,
+  PackageNode,
+  RawGraphData,
+  ViewMode,
+} from "@/types/package";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -70,20 +75,36 @@ export default function Home() {
     <div className="flex flex-col h-screen">
       {/* Header with file selection */}
       <header className="bg-zinc-800 dark:bg-zinc-950 text-white px-6 py-4 shadow-md z-10">
-        <h1 className="text-2xl font-semibold mb-3">Package Dependency Explorer</h1>
+        <h1 className="text-2xl font-semibold mb-3">
+          Package Dependency Explorer
+        </h1>
         {graphInfo && <SystemInfo info={graphInfo} />}
         <div className="flex flex-wrap gap-8 text-sm text-zinc-300 mb-3">
-          <FileSelector files={files} selectedFile={selectedFile} onChange={setSelectedFile} />
-          <Legend explicitCount={explicit} dependencyCount={dependency} totalCount={total} />
+          <FileSelector
+            files={files}
+            selectedFile={selectedFile}
+            onChange={setSelectedFile}
+          />
+          <Legend
+            explicitCount={explicit}
+            dependencyCount={dependency}
+            totalCount={total}
+          />
         </div>
         <ViewTabs viewMode={viewMode} onViewChange={setViewMode} />
       </header>
 
       {/* View Content */}
       <div className="flex-1 overflow-hidden">
-        {viewMode === "list" && <PackageList nodes={nodes} loading={loading} error={error} />}
-        {viewMode === "graph" && <DependencyGraph nodes={nodes} loading={loading} error={error} />}
-        {viewMode === "orphaned" && <OrphanedPackages nodes={nodes} loading={loading} error={error} />}
+        {viewMode === "list" && (
+          <PackageList nodes={nodes} loading={loading} error={error} />
+        )}
+        {viewMode === "graph" && (
+          <DependencyGraph nodes={nodes} loading={loading} error={error} />
+        )}
+        {viewMode === "orphaned" && (
+          <OrphanedPackages nodes={nodes} loading={loading} error={error} />
+        )}
       </div>
     </div>
   );

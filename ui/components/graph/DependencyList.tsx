@@ -32,7 +32,9 @@ export default function DependencyList({
           ))}
         </ul>
       ) : (
-        <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">{emptyMessage}</div>
+        <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">
+          {emptyMessage}
+        </div>
       )}
     </div>
   );

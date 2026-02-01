@@ -26,7 +26,9 @@ export default function Sidebar({
       >
         ×
       </button>
-      {selectedNode && <PackageDetails node={selectedNode} onPackageClick={onPackageClick} />}
+      {selectedNode && (
+        <PackageDetails node={selectedNode} onPackageClick={onPackageClick} />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { GraphInfo } from "@/types/package";
 import { formatTimestamp } from "@/lib/utils";
+import { GraphInfo } from "@/types/package";
 
 interface SystemInfoProps {
   info: GraphInfo;
@@ -18,7 +18,8 @@ export default function SystemInfo({ info }: Readonly<SystemInfoProps>) {
         <strong className="text-zinc-300">Shell Used:</strong> {info.shell}
       </span>
       <span>
-        <strong className="text-zinc-300">Collected On:</strong> {formatTimestamp(info.timestamp)}
+        <strong className="text-zinc-300">Collected On:</strong>{" "}
+        {formatTimestamp(info.timestamp)}
       </span>
     </div>
   );

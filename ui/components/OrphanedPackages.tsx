@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { PackageNode, ViewProps } from "@/types/package";
-import { fuzzyMatch, isOrphaned } from "@/lib/utils";
-import LoadingState from "@/components/ui/LoadingState";
-import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
-import SearchInput from "@/components/ui/SearchInput";
+import ErrorState from "@/components/ui/ErrorState";
+import LoadingState from "@/components/ui/LoadingState";
 import PackageItem from "@/components/ui/PackageItem";
+import SearchInput from "@/components/ui/SearchInput";
+import { fuzzyMatch, isOrphaned } from "@/lib/utils";
+import { PackageNode, ViewProps } from "@/types/package";
+import { useMemo, useState } from "react";
 
 function DependencyIndicator({ pkg }: Readonly<{ pkg: PackageNode }>) {
   const orphaned = isOrphaned(pkg);
@@ -27,7 +27,10 @@ function DependencyIndicator({ pkg }: Readonly<{ pkg: PackageNode }>) {
   }
 
   return (
-    <span className={`absolute top-2 right-2 w-2 h-2 rounded-full ${color}`} title={title}></span>
+    <span
+      className={`absolute top-2 right-2 w-2 h-2 rounded-full ${color}`}
+      title={title}
+    ></span>
   );
 }
 
@@ -45,13 +48,21 @@ function DependencyInfo({ pkg }: Readonly<{ pkg: PackageNode }>) {
   }
 
   return (
-    <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">{text}</div>
+    <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
+      {text}
+    </div>
   );
 }
 
-export default function OrphanedPackages({ nodes, loading, error }: Readonly<ViewProps>) {
+export default function OrphanedPackages({
+  nodes,
+  loading,
+  error,
+}: Readonly<ViewProps>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPackage, setSelectedPackage] = useState<PackageNode | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<PackageNode | null>(
+    null,
+  );
 
   // Filter orphaned packages: dependencies with no parents
   const orphanedPackages = useMemo(() => {
@@ -92,7 +103,9 @@ export default function OrphanedPackages({ nodes, loading, error }: Readonly<Vie
   }
 
   if (nodes.length === 0) {
-    return <EmptyState message="Please select a data file from the dropdown above to view orphaned packages." />;
+    return (
+      <EmptyState message="Please select a data file from the dropdown above to view orphaned packages." />
+    );
   }
 
   return (
@@ -120,7 +133,9 @@ export default function OrphanedPackages({ nodes, loading, error }: Readonly<Vie
             <div className="overflow-y-auto max-h-[calc(100vh-380px)]">
               {sortedOrphanedPackages.length === 0 ? (
                 <div className="text-center text-zinc-500 dark:text-zinc-500 italic text-sm py-8">
-                  {searchQuery ? "No orphaned packages match your search" : "No orphaned packages found"}
+                  {searchQuery
+                    ? "No orphaned packages match your search"
+                    : "No orphaned packages found"}
                 </div>
               ) : (
                 <ul className="space-y-1">
@@ -133,7 +148,10 @@ export default function OrphanedPackages({ nodes, loading, error }: Readonly<Vie
                         onClick={() => handlePackageClick(pkg)}
                         extraInfo={
                           <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                            {pkg.depends_on.length} {pkg.depends_on.length === 1 ? "dependency" : "dependencies"}
+                            {pkg.depends_on.length}{" "}
+                            {pkg.depends_on.length === 1
+                              ? "dependency"
+                              : "dependencies"}
                           </div>
                         }
                       />
@@ -158,7 +176,9 @@ export default function OrphanedPackages({ nodes, loading, error }: Readonly<Vie
             {selectedPackage ? (
               <>
                 <div className="mb-3 p-3 bg-zinc-100 dark:bg-zinc-700 rounded">
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Selected package:</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                    Selected package:
+                  </div>
                   <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 font-semibold">
                     {selectedPackage.id}
                   </div>

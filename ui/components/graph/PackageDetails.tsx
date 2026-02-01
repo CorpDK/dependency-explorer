@@ -6,7 +6,10 @@ interface PackageDetailsProps {
   onPackageClick: (packageName: string) => void;
 }
 
-export default function PackageDetails({ node, onPackageClick }: Readonly<PackageDetailsProps>) {
+export default function PackageDetails({
+  node,
+  onPackageClick,
+}: Readonly<PackageDetailsProps>) {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 break-words">

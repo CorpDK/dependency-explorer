@@ -1,5 +1,5 @@
-import { RefObject } from "react";
 import * as d3 from "d3";
+import { RefObject } from "react";
 
 interface UseZoomHandlersProps {
   svgRef: RefObject<SVGSVGElement | null>;
@@ -22,14 +22,20 @@ export function useZoomHandlers({
     if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
     const newZoom = Math.min(currentZoom + zoomStep, maxZoom);
-    svg.transition().duration(300).call(zoomBehaviorRef.current.scaleTo, newZoom);
+    svg
+      .transition()
+      .duration(300)
+      .call(zoomBehaviorRef.current.scaleTo, newZoom);
   };
 
   const handleZoomOut = () => {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
     const newZoom = Math.max(currentZoom - zoomStep, minZoom);
-    svg.transition().duration(300).call(zoomBehaviorRef.current.scaleTo, newZoom);
+    svg
+      .transition()
+      .duration(300)
+      .call(zoomBehaviorRef.current.scaleTo, newZoom);
   };
 
   const handleZoomChange = (zoom: number) => {
@@ -41,10 +47,10 @@ export function useZoomHandlers({
   const handleZoomReset = () => {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
     const svg = d3.select(svgRef.current);
-    svg.transition().duration(500).call(
-      zoomBehaviorRef.current.transform,
-      d3.zoomIdentity
-    );
+    svg
+      .transition()
+      .duration(500)
+      .call(zoomBehaviorRef.current.transform, d3.zoomIdentity);
   };
 
   return {

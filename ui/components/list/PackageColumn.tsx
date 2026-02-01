@@ -1,6 +1,6 @@
-import { PackageNode } from "@/types/package";
-import SearchInput from "@/components/ui/SearchInput";
 import PackageItem from "@/components/ui/PackageItem";
+import SearchInput from "@/components/ui/SearchInput";
+import { PackageNode } from "@/types/package";
 
 type ColumnVariant = "explicit" | "dependency";
 

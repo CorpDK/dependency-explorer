@@ -16,7 +16,8 @@ const robotoMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: "Manjaro Package Dependency Explorer",
-  description: "Interactive browser-based tool for visualizing and exploring package dependencies from pacman-managed systems",
+  description:
+    "Interactive browser-based tool for visualizing and exploring package dependencies from pacman-managed systems",
 };
 
 export default function RootLayout({
