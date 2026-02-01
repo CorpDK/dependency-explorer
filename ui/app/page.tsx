@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import DependencyGraph from "@/components/DependencyGraph";
 import PackageList from "@/components/PackageList";
+import OrphanedPackages from "@/components/OrphanedPackages";
 
-type ViewMode = "graph" | "list";
+type ViewMode = "graph" | "list" | "orphaned";
 
 interface PackageInfo {
   explicit: boolean;
@@ -130,6 +131,9 @@ export default function Home() {
           <span className="inline-flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dependency
           </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Orphaned
+          </span>
         </div>
 
         {/* View Selector Tabs */}
@@ -154,6 +158,16 @@ export default function Home() {
           >
             Graph View
           </button>
+          <button
+            onClick={() => setViewMode("orphaned")}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+              viewMode === "orphaned"
+                ? "bg-zinc-700 text-white"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50"
+            }`}
+          >
+            Orphaned Packages
+          </button>
         </div>
       </header>
 
@@ -161,6 +175,7 @@ export default function Home() {
       <div className="flex-1 overflow-hidden">
         {viewMode === "list" && <PackageList nodes={nodes} loading={loading} error={error} />}
         {viewMode === "graph" && <DependencyGraph nodes={nodes} loading={loading} error={error} />}
+        {viewMode === "orphaned" && <OrphanedPackages nodes={nodes} loading={loading} error={error} />}
       </div>
     </div>
   );
