@@ -8,6 +8,21 @@ This is an **Arch-based Package Dependency Explorer** - a Next.js-based web appl
 
 **CRITICAL**: The complete project specification is in [AGENTS.md](AGENTS.md). All implementation decisions MUST strictly follow that specification. Read it thoroughly before making any changes.
 
+## Coding Standards
+
+**All code changes MUST follow the guidelines in [CODING_GUIDELINES.md](CODING_GUIDELINES.md)**. This document defines:
+- Component structure and organization principles
+- Code reusability patterns
+- Type safety requirements
+- Anti-patterns to avoid
+- Performance best practices
+
+Key principles:
+- **Pure Components**: Single responsibility, no side effects, predictable outputs
+- **No Duplication**: Extract shared code to utilities or reusable components
+- **Type Safety**: Centralized type definitions in `types/` directory
+- **Component Size Limits**: Pages < 100 lines, Views < 250 lines, UI components < 50 lines
+
 ## Architecture
 
 The system has three mandatory layers:
@@ -40,18 +55,42 @@ The system has three mandatory layers:
 .
 ├── AGENTS.md                  # Project specification (source of truth)
 ├── CLAUDE.md                  # This file
+├── CODING_GUIDELINES.md       # Coding standards and best practices
 ├── README.md                  # User documentation
 ├── collect-deps.sh            # Shell script for extracting package data
 └── ui/                        # Next.js application directory
     ├── app/                   # Next.js App Router directory
     │   ├── layout.tsx         # Root layout with metadata
-    │   ├── page.tsx           # Main page (renders DependencyGraph)
+    │   ├── page.tsx           # Main page (orchestration only)
     │   ├── globals.css        # Global styles
     │   └── api/
     │       └── files/
     │           └── route.ts   # Dynamic file listing API
-    ├── components/
-    │   └── DependencyGraph.tsx  # Main graph visualization component
+    ├── components/            # React components
+    │   ├── ui/                # Reusable UI primitives
+    │   │   ├── LoadingState.tsx
+    │   │   ├── ErrorState.tsx
+    │   │   ├── EmptyState.tsx
+    │   │   ├── SearchInput.tsx
+    │   │   └── PackageItem.tsx
+    │   ├── graph/             # Graph view subcomponents
+    │   │   ├── Sidebar.tsx
+    │   │   ├── PackageDetails.tsx
+    │   │   └── DependencyList.tsx
+    │   ├── header/            # Header subcomponents
+    │   │   ├── SystemInfo.tsx
+    │   │   ├── FileSelector.tsx
+    │   │   ├── ViewTabs.tsx
+    │   │   └── Legend.tsx
+    │   ├── list/              # List view subcomponents
+    │   │   └── PackageColumn.tsx
+    │   ├── DependencyGraph.tsx  # Main graph view
+    │   ├── PackageList.tsx      # Main list view
+    │   └── OrphanedPackages.tsx # Main orphaned view
+    ├── lib/                   # Utility functions
+    │   └── utils.ts           # Shared utilities
+    ├── types/                 # TypeScript type definitions
+    │   └── package.ts         # Shared interfaces
     ├── public/
     │   └── data/              # Static data files
     │       └── *.json         # Timestamped dependency data
@@ -123,11 +162,15 @@ The application follows Next.js App Router conventions:
 - **app/api/files/route.ts**: Server-side endpoint that reads `public/data/` directory and returns list of JSON files sorted by modification time
 
 #### React Components
-- **components/DependencyGraph.tsx**: Client-side React component ("use client") containing:
-  - D3.js force-directed graph visualization
-  - React hooks for state management (useState, useEffect, useRef)
-  - Data fetching from `/api/files` and `/data/{filename}`
-  - All visualization and interaction logic
+
+The application uses a modular component architecture (see [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for details):
+
+- **app/page.tsx**: Main page that orchestrates data fetching and view switching
+- **View Components**: DependencyGraph, PackageList, OrphanedPackages (main views)
+- **Subcomponents**: Organized by feature in `components/graph/`, `components/header/`, `components/list/`
+- **UI Primitives**: Reusable components in `components/ui/` (LoadingState, SearchInput, PackageItem, etc.)
+- **Utilities**: Shared functions in `lib/utils.ts` (fuzzyMatch, formatTimestamp, etc.)
+- **Types**: Centralized type definitions in `types/package.ts`
 
 #### Styling
 - **app/globals.css**: Global CSS with all styling for graph, nodes, sidebar, etc.
