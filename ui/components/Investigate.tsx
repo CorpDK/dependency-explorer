@@ -1,21 +1,23 @@
 "use client";
 
-import { PackageNode, PackageLink, ViewProps } from "@/types/package";
+import {
+  PackageNode,
+  PackageLink,
+  ViewProps,
+  InvestigateFilterType,
+} from "@/types/package";
 import { fuzzyMatch, collectPackageTree, sortPackagesByName } from "@/lib/utils";
+import { getLinkType } from "@/lib/packageTypeUtils";
+import { updateDualSelection } from "@/lib/d3Utils";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
-import SearchInput from "@/components/ui/SearchInput";
-import PackageItem from "@/components/ui/PackageItem";
-import FilterButton from "@/components/ui/FilterButton";
 import Sidebar from "@/components/graph/Sidebar";
-import ZoomControls from "@/components/graph/ZoomControls";
+import PackageListPanel from "@/components/investigate/PackageListPanel";
+import GraphPanel from "@/components/investigate/GraphPanel";
 import { useForceGraph } from "@/hooks/useForceGraph";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { useMemo, useRef, useState, useEffect } from "react";
-import * as d3 from "d3";
-
-type FilterType = "all" | "explicit" | "dependency";
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 10;
@@ -27,7 +29,7 @@ export default function Investigate({
   error,
 }: Readonly<ViewProps>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [filterType, setFilterType] = useState<InvestigateFilterType>("all");
   const [selectedPackage, setSelectedPackage] = useState<PackageNode | null>(
     null,
   );
@@ -76,7 +78,7 @@ export default function Investigate({
           subLinks.push({
             source: node.id,
             target: dep,
-            type: node.explicit ? "explicit" : "dependency",
+            type: getLinkType(node),
           });
         }
       });
@@ -113,28 +115,12 @@ export default function Investigate({
 
   // Update selected node visual indicators
   useEffect(() => {
-    if (!svgRef.current) return;
-
-    const svg = d3.select(svgRef.current);
-
-    // Clear all selection classes
-    svg.selectAll(".node").classed("selected", false).classed("list-selected", false);
-
-    // Highlight the node selected from the list (root of the tree)
-    if (selectedPackage) {
-      svg
-        .selectAll(".node")
-        .filter((d: any) => d.id === selectedPackage.id)
-        .classed("list-selected", true);
-    }
-
-    // Highlight the node clicked in the graph (shown in sidebar)
-    if (selectedGraphNode && !sidebarHidden) {
-      svg
-        .selectAll(".node")
-        .filter((d: any) => d.id === selectedGraphNode.id)
-        .classed("selected", true);
-    }
+    updateDualSelection(
+      svgRef,
+      selectedPackage?.id ?? null,
+      selectedGraphNode?.id ?? null,
+      sidebarHidden
+    );
   }, [selectedGraphNode, sidebarHidden, selectedPackage]);
 
   const handleGraphPackageClick = (packageName: string) => {
@@ -177,112 +163,31 @@ export default function Investigate({
   return (
     <div className="h-full flex overflow-hidden bg-zinc-50 dark:bg-zinc-900">
       {/* Left Panel - Package List */}
-      <div className="w-96 flex flex-col border-r border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">
-        <div className="p-4 border-b border-zinc-300 dark:border-zinc-700">
-          <h2 className="text-xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100">
-            Investigate Packages
-          </h2>
-
-          {/* Search Input */}
-          <SearchInput
-            placeholder="Search packages..."
-            value={searchQuery}
-            onChange={setSearchQuery}
-            ringColor="ring-blue-500"
-          />
-
-          {/* Filter Buttons */}
-          <div className="flex gap-2 mt-3">
-            <FilterButton
-              active={filterType === "all"}
-              onClick={() => setFilterType("all")}
-            >
-              All ({nodes.length})
-            </FilterButton>
-            <FilterButton
-              active={filterType === "explicit"}
-              onClick={() => setFilterType("explicit")}
-            >
-              Explicit ({nodes.filter((n) => n.explicit).length})
-            </FilterButton>
-            <FilterButton
-              active={filterType === "dependency"}
-              onClick={() => setFilterType("dependency")}
-            >
-              Dependencies ({nodes.filter((n) => !n.explicit).length})
-            </FilterButton>
-          </div>
-        </div>
-
-        {/* Package List */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredPackages.length === 0 ? (
-            <div className="text-center text-zinc-500 dark:text-zinc-500 italic text-sm py-8">
-              No packages match your criteria
-            </div>
-          ) : (
-            <ul className="p-2 space-y-1">
-              {filteredPackages.map((pkg) => (
-                <li key={pkg.id}>
-                  <PackageItem
-                    pkg={pkg}
-                    variant={pkg.explicit ? "explicit" : "dependency"}
-                    isHighlighted={selectedPackage?.id === pkg.id}
-                    onClick={() => setSelectedPackage(pkg)}
-                    extraInfo={
-                      <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                        {pkg.depends_on.length} deps, {pkg.required_by.length}{" "}
-                        parents
-                      </div>
-                    }
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      <PackageListPanel
+        nodes={nodes}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterType={filterType}
+        onFilterChange={setFilterType}
+        filteredPackages={filteredPackages}
+        selectedPackage={selectedPackage}
+        onPackageSelect={setSelectedPackage}
+      />
 
       {/* Center Panel - Sub-Graph */}
-      <div className="flex-1 flex flex-col">
-        {selectedPackage ? (
-          <>
-            <div className="p-4 border-b border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Dependency Tree: {selectedPackage.id}
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                Showing {subGraphData.nodes.length} packages in the tree (
-                {subGraphData.links.length} connections)
-              </p>
-            </div>
-            <div className="flex-1 relative" ref={containerRef}>
-              <svg
-                className="w-full h-full cursor-grab active:cursor-grabbing pointer-events-auto"
-                ref={svgRef}
-              ></svg>
-              <ZoomControls
-                currentZoom={currentZoom}
-                minZoom={MIN_ZOOM}
-                maxZoom={MAX_ZOOM}
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onZoomChange={handleZoomChange}
-                onReset={handleZoomReset}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-zinc-500 dark:text-zinc-500">
-              <p className="text-lg mb-2">Select a package to investigate</p>
-              <p className="text-sm">
-                The dependency tree will show all connected packages
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      <GraphPanel
+        selectedPackage={selectedPackage}
+        subGraphData={subGraphData}
+        containerRef={containerRef}
+        svgRef={svgRef}
+        currentZoom={currentZoom}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onZoomChange={handleZoomChange}
+        onZoomReset={handleZoomReset}
+      />
 
       {/* Right Panel - Sidebar */}
       {selectedPackage && (

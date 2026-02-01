@@ -5,8 +5,12 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import { collectDependencies, fuzzyMatch, sortPackagesByName } from "@/lib/utils";
-import { PackageNode, ViewProps } from "@/types/package";
-import { useMemo, useState } from "react";
+import {
+  isExplicitHighlighted,
+  isDependencyHighlighted,
+} from "@/lib/packageSelection";
+import { PackageNode, ViewProps, SelectedPackage } from "@/types/package";
+import { useMemo, useState, useCallback } from "react";
 
 export default function PackageList({
   nodes,
@@ -15,10 +19,9 @@ export default function PackageList({
 }: Readonly<ViewProps>) {
   const [explicitSearchQuery, setExplicitSearchQuery] = useState("");
   const [dependencySearchQuery, setDependencySearchQuery] = useState("");
-  const [selectedPackage, setSelectedPackage] = useState<{
-    id: string;
-    type: "explicit" | "dependency";
-  } | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(
+    null
+  );
 
   // Compute which explicit packages depend on each dependency package
   const dependencyMap = useMemo(() => {
@@ -124,54 +127,53 @@ export default function PackageList({
     return [...selected, ...sortPackagesByName(remaining)];
   }, [nodes, dependencySearchQuery, selectedPackage, explicitDependenciesMap]);
 
-  const explicitCount = nodes.filter((n) => n.explicit).length;
+  const explicitCount = useMemo(
+    () => nodes.filter((n) => n.explicit).length,
+    [nodes]
+  );
   const dependencyCount = nodes.length - explicitCount;
 
-  const handleExplicitClick = (pkg: PackageNode) => {
-    if (
-      selectedPackage?.id === pkg.id &&
-      selectedPackage?.type === "explicit"
-    ) {
-      setSelectedPackage(null);
-    } else {
-      setSelectedPackage({ id: pkg.id, type: "explicit" });
-      setDependencySearchQuery("");
-    }
-  };
+  const handleExplicitClick = useCallback(
+    (pkg: PackageNode) => {
+      if (
+        selectedPackage?.id === pkg.id &&
+        selectedPackage?.type === "explicit"
+      ) {
+        setSelectedPackage(null);
+      } else {
+        setSelectedPackage({ id: pkg.id, type: "explicit" });
+        setDependencySearchQuery("");
+      }
+    },
+    [selectedPackage]
+  );
 
-  const handleDependencyClick = (pkg: PackageNode) => {
-    if (
-      selectedPackage?.id === pkg.id &&
-      selectedPackage?.type === "dependency"
-    ) {
-      setSelectedPackage(null);
-    } else {
-      setSelectedPackage({ id: pkg.id, type: "dependency" });
-      setExplicitSearchQuery("");
-    }
-  };
+  const handleDependencyClick = useCallback(
+    (pkg: PackageNode) => {
+      if (
+        selectedPackage?.id === pkg.id &&
+        selectedPackage?.type === "dependency"
+      ) {
+        setSelectedPackage(null);
+      } else {
+        setSelectedPackage({ id: pkg.id, type: "dependency" });
+        setExplicitSearchQuery("");
+      }
+    },
+    [selectedPackage]
+  );
 
-  const isExplicitHighlighted = (pkg: PackageNode): boolean => {
-    if (!selectedPackage) return false;
-    if (selectedPackage.type === "explicit" && selectedPackage.id === pkg.id)
-      return true;
-    if (selectedPackage.type === "dependency") {
-      const deps = explicitDependenciesMap.get(pkg.id);
-      return deps?.has(selectedPackage.id) ?? false;
-    }
-    return false;
-  };
+  const checkIsExplicitHighlighted = useCallback(
+    (pkg: PackageNode): boolean =>
+      isExplicitHighlighted(pkg, selectedPackage, explicitDependenciesMap),
+    [selectedPackage, explicitDependenciesMap]
+  );
 
-  const isDependencyHighlighted = (pkg: PackageNode): boolean => {
-    if (!selectedPackage) return false;
-    if (selectedPackage.type === "dependency" && selectedPackage.id === pkg.id)
-      return true;
-    if (selectedPackage.type === "explicit") {
-      const deps = explicitDependenciesMap.get(selectedPackage.id);
-      return deps?.has(pkg.id) ?? false;
-    }
-    return false;
-  };
+  const checkIsDependencyHighlighted = useCallback(
+    (pkg: PackageNode): boolean =>
+      isDependencyHighlighted(pkg, selectedPackage, explicitDependenciesMap),
+    [selectedPackage, explicitDependenciesMap]
+  );
 
   if (loading) {
     return <LoadingState message="Loading package data..." />;
@@ -199,7 +201,7 @@ export default function PackageList({
           searchQuery={explicitSearchQuery}
           onSearchChange={setExplicitSearchQuery}
           onPackageClick={handleExplicitClick}
-          isHighlighted={isExplicitHighlighted}
+          isHighlighted={checkIsExplicitHighlighted}
           searchPlaceholder="Search explicit packages..."
           ringColor="focus:ring-green-500"
         />
@@ -212,7 +214,7 @@ export default function PackageList({
           searchQuery={dependencySearchQuery}
           onSearchChange={setDependencySearchQuery}
           onPackageClick={handleDependencyClick}
-          isHighlighted={isDependencyHighlighted}
+          isHighlighted={checkIsDependencyHighlighted}
           searchPlaceholder="Search dependency packages..."
           ringColor="focus:ring-blue-500"
           renderExtraInfo={(pkg) => {

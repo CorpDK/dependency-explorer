@@ -123,3 +123,32 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Utility Classes */
+
+/* Package type badge */
+.package-type-badge {
+  @apply inline-block px-3 py-1.5 rounded text-sm font-medium;
+}
+
+.package-type-badge.explicit {
+  @apply bg-green-500 text-white;
+}
+
+.package-type-badge.dependency {
+  @apply bg-blue-500 text-white;
+}
+
+.package-type-badge.orphaned {
+  @apply bg-red-500 text-white;
+}
+
+/* Empty state message */
+.empty-state-message {
+  @apply text-center text-zinc-500 dark:text-zinc-500 italic text-sm py-8;
+}
+
+/* Responsive package grid */
+.package-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}

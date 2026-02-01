@@ -8,7 +8,8 @@ import LoadingState from "@/components/ui/LoadingState";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { useForceGraph } from "@/hooks/useForceGraph";
 import { PackageNode, PackageLink, ViewProps } from "@/types/package";
-import * as d3 from "d3";
+import { getLinkType } from "@/lib/packageTypeUtils";
+import { updateNodeSelection } from "@/lib/d3Utils";
 import { useEffect, useRef, useState, useMemo } from "react";
 
 const MIN_ZOOM = 0.1;
@@ -56,7 +57,7 @@ export default function DependencyGraph({
           newLinks.push({
             source: node.id,
             target: dep,
-            type: node.explicit ? "explicit" : "dependency",
+            type: getLinkType(node),
           });
         }
       });
@@ -92,17 +93,7 @@ export default function DependencyGraph({
 
   // Update selected node visual indicator
   useEffect(() => {
-    if (!svgRef.current) return;
-
-    const svg = d3.select(svgRef.current);
-    svg.selectAll(".node").classed("selected", false);
-
-    if (selectedNode && !sidebarHidden) {
-      svg
-        .selectAll(".node")
-        .filter((d: any) => d.id === selectedNode.id)
-        .classed("selected", true);
-    }
+    updateNodeSelection(svgRef, selectedNode?.id ?? null, sidebarHidden);
   }, [selectedNode, sidebarHidden]);
 
   const handlePackageClick = (packageName: string) => {

@@ -42,3 +42,22 @@ export interface ViewProps {
   loading: boolean;
   error: string;
 }
+
+// Selection state
+export interface SelectedPackage {
+  id: string;
+  type: "explicit" | "dependency";
+}
+
+// Filter types
+export type InvestigateFilterType = "all" | "explicit" | "dependency";
+export type ColumnVariant = "explicit" | "dependency";
+
+// Package status
+export type PackageStatus = "explicit" | "dependency" | "orphaned";
+
+// Tab navigation
+export interface TabProps {
+  label: string;
+  value: ViewMode;
+}
