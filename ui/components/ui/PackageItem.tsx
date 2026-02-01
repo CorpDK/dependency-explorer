@@ -1,5 +1,6 @@
 import { PackageNode } from "@/types/package";
 import { isOrphaned as checkIsOrphaned } from "@/lib/utils";
+import { memo } from "react";
 
 type Variant = "explicit" | "dependency" | "orphaned";
 
@@ -30,7 +31,7 @@ const variantStyles = {
   },
 };
 
-export default function PackageItem({
+const PackageItem = memo(function PackageItem({
   pkg,
   variant,
   isHighlighted = false,
@@ -65,4 +66,6 @@ export default function PackageItem({
       {extraInfo}
     </button>
   );
-}
+});
+
+export default PackageItem;

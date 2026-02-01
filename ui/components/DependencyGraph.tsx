@@ -10,11 +10,8 @@ import { useForceGraph } from "@/hooks/useForceGraph";
 import { PackageNode, PackageLink, ViewProps } from "@/types/package";
 import { getLinkType } from "@/lib/packageTypeUtils";
 import { updateNodeSelection } from "@/lib/d3Utils";
+import { ZOOM_CONFIG } from "@/lib/constants";
 import { useEffect, useRef, useState, useMemo } from "react";
-
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 10;
-const ZOOM_STEP = 0.2;
 
 export default function DependencyGraph({
   nodes,
@@ -33,7 +30,7 @@ export default function DependencyGraph({
 
   // Memoize zoom extent to prevent unnecessary re-renders
   const zoomExtent = useMemo<[number, number]>(
-    () => [MIN_ZOOM, MAX_ZOOM],
+    () => [ZOOM_CONFIG.MIN, ZOOM_CONFIG.MAX],
     [],
   );
 
@@ -114,9 +111,9 @@ export default function DependencyGraph({
       svgRef,
       zoomBehaviorRef,
       currentZoom,
-      minZoom: MIN_ZOOM,
-      maxZoom: MAX_ZOOM,
-      zoomStep: ZOOM_STEP,
+      minZoom: ZOOM_CONFIG.MIN,
+      maxZoom: ZOOM_CONFIG.MAX,
+      zoomStep: ZOOM_CONFIG.STEP,
     });
 
   if (loading) {
@@ -142,8 +139,8 @@ export default function DependencyGraph({
         ></svg>
         <ZoomControls
           currentZoom={currentZoom}
-          minZoom={MIN_ZOOM}
-          maxZoom={MAX_ZOOM}
+          minZoom={ZOOM_CONFIG.MIN}
+          maxZoom={ZOOM_CONFIG.MAX}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onZoomChange={handleZoomChange}

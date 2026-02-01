@@ -9,6 +9,7 @@ import {
 import { fuzzyMatch, collectPackageTree, sortPackagesByName } from "@/lib/utils";
 import { getLinkType } from "@/lib/packageTypeUtils";
 import { updateDualSelection } from "@/lib/d3Utils";
+import { ZOOM_CONFIG } from "@/lib/constants";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
@@ -18,10 +19,6 @@ import GraphPanel from "@/components/investigate/GraphPanel";
 import { useForceGraph } from "@/hooks/useForceGraph";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { useMemo, useRef, useState, useEffect } from "react";
-
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 10;
-const ZOOM_STEP = 0.2;
 
 export default function Investigate({
   nodes,
@@ -45,7 +42,7 @@ export default function Investigate({
 
   // Memoize zoom extent to prevent unnecessary re-renders
   const zoomExtent = useMemo<[number, number]>(
-    () => [MIN_ZOOM, MAX_ZOOM],
+    () => [ZOOM_CONFIG.MIN, ZOOM_CONFIG.MAX],
     [],
   );
 
@@ -141,9 +138,9 @@ export default function Investigate({
       svgRef,
       zoomBehaviorRef,
       currentZoom,
-      minZoom: MIN_ZOOM,
-      maxZoom: MAX_ZOOM,
-      zoomStep: ZOOM_STEP,
+      minZoom: ZOOM_CONFIG.MIN,
+      maxZoom: ZOOM_CONFIG.MAX,
+      zoomStep: ZOOM_CONFIG.STEP,
     });
 
   if (loading) {
@@ -181,8 +178,8 @@ export default function Investigate({
         containerRef={containerRef}
         svgRef={svgRef}
         currentZoom={currentZoom}
-        minZoom={MIN_ZOOM}
-        maxZoom={MAX_ZOOM}
+        minZoom={ZOOM_CONFIG.MIN}
+        maxZoom={ZOOM_CONFIG.MAX}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onZoomChange={handleZoomChange}

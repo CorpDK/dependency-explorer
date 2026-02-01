@@ -1,28 +1,21 @@
 import { PackageNode } from "@/types/package";
-import { isOrphaned } from "@/lib/utils";
+import { usePackageStatus } from "@/hooks/usePackageStatus";
+import { memo } from "react";
 
 interface DependencyInfoProps {
   pkg: PackageNode;
 }
 
-export default function DependencyInfo({
+const DependencyInfo = memo(function DependencyInfo({
   pkg,
 }: Readonly<DependencyInfoProps>) {
-  const orphaned = isOrphaned(pkg);
-
-  let text: string;
-
-  if (pkg.explicit) {
-    text = "Explicitly installed";
-  } else if (orphaned) {
-    text = "Orphaned dependency";
-  } else {
-    text = `Required by ${pkg.required_by.length} package${pkg.required_by.length === 1 ? "" : "s"}`;
-  }
+  const { text } = usePackageStatus(pkg);
 
   return (
     <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
       {text}
     </div>
   );
-}
+});
+
+export default DependencyInfo;

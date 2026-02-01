@@ -4,11 +4,9 @@ import PackageColumn from "@/components/list/PackageColumn";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
-import { collectDependencies, fuzzyMatch, sortPackagesByName } from "@/lib/utils";
-import {
-  isExplicitHighlighted,
-  isDependencyHighlighted,
-} from "@/lib/packageSelection";
+import { fuzzyMatch, sortPackagesByName } from "@/lib/utils";
+import { useDependencyMaps } from "@/hooks/useDependencyMaps";
+import { usePackageHighlighting } from "@/hooks/usePackageHighlighting";
 import { PackageNode, ViewProps, SelectedPackage } from "@/types/package";
 import { useMemo, useState, useCallback } from "react";
 
@@ -23,44 +21,10 @@ export default function PackageList({
     null
   );
 
-  // Compute which explicit packages depend on each dependency package
-  const dependencyMap = useMemo(() => {
-    const explicitPackages = nodes.filter((n) => n.explicit);
-    const depMap = new Map<string, Set<string>>();
-
-    // For each explicit package, collect all its dependencies (transitive)
-    explicitPackages.forEach((explicitPkg) => {
-      const allDeps = new Set<string>();
-      const visited = new Set<string>();
-      collectDependencies(explicitPkg.id, nodes, visited, allDeps);
-
-      // Map each dependency back to this explicit package
-      allDeps.forEach((dep) => {
-        if (!depMap.has(dep)) {
-          depMap.set(dep, new Set());
-        }
-        depMap.get(dep)!.add(explicitPkg.id);
-      });
-    });
-
-    return depMap;
-  }, [nodes]);
-
-  // Compute reverse dependency map (explicit package -> all its dependencies)
-  const explicitDependenciesMap = useMemo(() => {
-    const depMap = new Map<string, Set<string>>();
-
-    nodes
-      .filter((n) => n.explicit)
-      .forEach((explicitPkg) => {
-        const allDeps = new Set<string>();
-        const visited = new Set<string>();
-        collectDependencies(explicitPkg.id, nodes, visited, allDeps);
-        depMap.set(explicitPkg.id, allDeps);
-      });
-
-    return depMap;
-  }, [nodes]);
+  // Use custom hooks for dependency maps and highlighting
+  const { dependencyMap, explicitDependenciesMap } = useDependencyMaps(nodes);
+  const { isExplicitHighlighted, isDependencyHighlighted } =
+    usePackageHighlighting(selectedPackage, explicitDependenciesMap);
 
   // Filter and sort explicit packages
   const sortedExplicitPackages = useMemo(() => {
@@ -163,17 +127,6 @@ export default function PackageList({
     [selectedPackage]
   );
 
-  const checkIsExplicitHighlighted = useCallback(
-    (pkg: PackageNode): boolean =>
-      isExplicitHighlighted(pkg, selectedPackage, explicitDependenciesMap),
-    [selectedPackage, explicitDependenciesMap]
-  );
-
-  const checkIsDependencyHighlighted = useCallback(
-    (pkg: PackageNode): boolean =>
-      isDependencyHighlighted(pkg, selectedPackage, explicitDependenciesMap),
-    [selectedPackage, explicitDependenciesMap]
-  );
 
   if (loading) {
     return <LoadingState message="Loading package data..." />;
@@ -201,7 +154,7 @@ export default function PackageList({
           searchQuery={explicitSearchQuery}
           onSearchChange={setExplicitSearchQuery}
           onPackageClick={handleExplicitClick}
-          isHighlighted={checkIsExplicitHighlighted}
+          isHighlighted={isExplicitHighlighted}
           searchPlaceholder="Search explicit packages..."
           ringColor="focus:ring-green-500"
         />
@@ -214,7 +167,7 @@ export default function PackageList({
           searchQuery={dependencySearchQuery}
           onSearchChange={setDependencySearchQuery}
           onPackageClick={handleDependencyClick}
-          isHighlighted={checkIsDependencyHighlighted}
+          isHighlighted={isDependencyHighlighted}
           searchPlaceholder="Search dependency packages..."
           ringColor="focus:ring-blue-500"
           renderExtraInfo={(pkg) => {

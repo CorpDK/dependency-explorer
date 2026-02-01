@@ -178,7 +178,7 @@ export function useForceGraph({
 
     if (performanceOptimization) {
       simulation.on("end", () => {
-        console.log("Simulation converged and stopped");
+        // Simulation converged and stopped
       });
     }
 
