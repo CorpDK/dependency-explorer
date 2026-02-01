@@ -5,7 +5,7 @@ interface SystemInfoProps {
   info: GraphInfo;
 }
 
-export default function SystemInfo({ info }: SystemInfoProps) {
+export default function SystemInfo({ info }: Readonly<SystemInfoProps>) {
   return (
     <div className="flex flex-wrap gap-6 text-sm text-zinc-400 mb-3">
       <span>

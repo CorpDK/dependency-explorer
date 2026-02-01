@@ -6,7 +6,7 @@ interface TabProps {
   children: React.ReactNode;
 }
 
-function Tab({ active, onClick, children }: TabProps) {
+function Tab({ active, onClick, children }: Readonly<TabProps>) {
   return (
     <button
       onClick={onClick}
@@ -26,7 +26,7 @@ interface ViewTabsProps {
   onViewChange: (mode: ViewMode) => void;
 }
 
-export default function ViewTabs({ viewMode, onViewChange }: ViewTabsProps) {
+export default function ViewTabs({ viewMode, onViewChange }: Readonly<ViewTabsProps>) {
   return (
     <div className="flex gap-1 border-t border-zinc-700 pt-3">
       <Tab active={viewMode === "list"} onClick={() => onViewChange("list")}>

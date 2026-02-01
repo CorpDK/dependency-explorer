@@ -13,7 +13,7 @@ export default function Sidebar({
   selectedNode,
   onClose,
   onPackageClick,
-}: SidebarProps) {
+}: Readonly<SidebarProps>) {
   if (isHidden) {
     return null;
   }

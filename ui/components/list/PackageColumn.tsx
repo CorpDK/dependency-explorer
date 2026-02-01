@@ -32,7 +32,7 @@ export default function PackageColumn({
   renderExtraInfo,
   searchPlaceholder,
   ringColor,
-}: PackageColumnProps) {
+}: Readonly<PackageColumnProps>) {
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100 flex items-center gap-2">

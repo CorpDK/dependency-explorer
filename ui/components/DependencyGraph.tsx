@@ -15,7 +15,7 @@ interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   target: string | PackageNode;
 }
 
-export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
+export default function DependencyGraph({ nodes, loading, error }: Readonly<ViewProps>) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [links, setLinks] = useState<PackageLink[]>([]);
@@ -78,7 +78,13 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
 
     // Zoom behavior - create or reuse
     let zoom = zoomBehaviorRef.current;
-    if (!zoom) {
+    if (zoom) {
+      // Update the zoom callback to use the new 'g' element
+      zoom.on("zoom", (event) => {
+        g.attr("transform", event.transform);
+        setCurrentZoom(event.transform.k);
+      });
+    } else {
       zoom = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([MIN_ZOOM, MAX_ZOOM])
         .on("zoom", (event) => {
@@ -86,12 +92,6 @@ export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
           setCurrentZoom(event.transform.k);
         });
       zoomBehaviorRef.current = zoom;
-    } else {
-      // Update the zoom callback to use the new 'g' element
-      zoom.on("zoom", (event) => {
-        g.attr("transform", event.transform);
-        setCurrentZoom(event.transform.k);
-      });
     }
 
     svg.call(zoom);

@@ -3,7 +3,7 @@ interface LegendItemProps {
   label: string;
 }
 
-function LegendItem({ color, label }: LegendItemProps) {
+function LegendItem({ color, label }: Readonly<LegendItemProps>) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className={`w-2.5 h-2.5 rounded-full ${color}`}></span> {label}
@@ -17,7 +17,7 @@ interface LegendProps {
   totalCount: number;
 }
 
-export default function Legend({ explicitCount, dependencyCount, totalCount }: LegendProps) {
+export default function Legend({ explicitCount, dependencyCount, totalCount }: Readonly<LegendProps>) {
   return (
     <div className="flex flex-wrap gap-8 text-sm text-zinc-300 mb-3">
       <span>

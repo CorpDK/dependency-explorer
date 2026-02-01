@@ -10,7 +10,7 @@ export default function SearchInput({
   value,
   onChange,
   ringColor = "ring-green-500",
-}: SearchInputProps) {
+}: Readonly<SearchInputProps>) {
   return (
     <input
       type="text"

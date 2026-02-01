@@ -8,7 +8,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
 import PackageColumn from "@/components/list/PackageColumn";
 
-export default function PackageList({ nodes, loading, error }: ViewProps) {
+export default function PackageList({ nodes, loading, error }: Readonly<ViewProps>) {
   const [explicitSearchQuery, setExplicitSearchQuery] = useState("");
   const [dependencySearchQuery, setDependencySearchQuery] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<{ id: string; type: "explicit" | "dependency" } | null>(null);
@@ -61,14 +61,8 @@ export default function PackageList({ nodes, loading, error }: ViewProps) {
     const remaining = filtered.filter((pkg) => pkg.id !== selectedPackage?.id);
 
     if (selectedPackage?.type === "dependency") {
-      const dependsOnSelected = remaining.filter((pkg) => {
-        const deps = explicitDependenciesMap.get(pkg.id);
-        return deps && deps.has(selectedPackage.id);
-      });
-      const others = remaining.filter((pkg) => {
-        const deps = explicitDependenciesMap.get(pkg.id);
-        return !deps || !deps.has(selectedPackage.id);
-      });
+      const dependsOnSelected = remaining.filter((pkg) => explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id));
+      const others = remaining.filter((pkg) => !(explicitDependenciesMap.get(pkg.id)?.has(selectedPackage.id) ?? false));
 
       return [
         ...selected,
@@ -95,8 +89,8 @@ export default function PackageList({ nodes, loading, error }: ViewProps) {
 
     if (selectedPackage?.type === "explicit") {
       const selectedDeps = explicitDependenciesMap.get(selectedPackage.id);
-      const isDependencyOf = remaining.filter((pkg) => selectedDeps && selectedDeps.has(pkg.id));
-      const others = remaining.filter((pkg) => !selectedDeps || !selectedDeps.has(pkg.id));
+      const isDependencyOf = remaining.filter((pkg) => selectedDeps?.has(pkg.id));
+      const others = remaining.filter((pkg) => !(selectedDeps?.has(pkg.id)));
 
       return [
         ...selected,
@@ -137,7 +131,7 @@ export default function PackageList({ nodes, loading, error }: ViewProps) {
     if (selectedPackage.type === "explicit" && selectedPackage.id === pkg.id) return true;
     if (selectedPackage.type === "dependency") {
       const deps = explicitDependenciesMap.get(pkg.id);
-      return !!deps?.has(selectedPackage.id);
+      return deps?.has(selectedPackage.id) ?? false;
     }
     return false;
   };
@@ -147,7 +141,7 @@ export default function PackageList({ nodes, loading, error }: ViewProps) {
     if (selectedPackage.type === "dependency" && selectedPackage.id === pkg.id) return true;
     if (selectedPackage.type === "explicit") {
       const deps = explicitDependenciesMap.get(selectedPackage.id);
-      return !!deps?.has(pkg.id);
+      return deps?.has(pkg.id) ?? false;
     }
     return false;
   };

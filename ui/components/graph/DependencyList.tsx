@@ -12,7 +12,7 @@ export default function DependencyList({
   items,
   onItemClick,
   emptyMessage,
-}: DependencyListProps) {
+}: Readonly<DependencyListProps>) {
   return (
     <div className="mb-6">
       <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">

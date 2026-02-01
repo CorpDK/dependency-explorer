@@ -9,30 +9,47 @@ import EmptyState from "@/components/ui/EmptyState";
 import SearchInput from "@/components/ui/SearchInput";
 import PackageItem from "@/components/ui/PackageItem";
 
-function DependencyIndicator({ pkg }: { pkg: PackageNode }) {
+function DependencyIndicator({ pkg }: Readonly<{ pkg: PackageNode }>) {
   const orphaned = isOrphaned(pkg);
-  const color = pkg.explicit ? "bg-green-500" : orphaned ? "bg-orange-500" : "bg-blue-500";
-  const title = pkg.explicit ? "Explicitly installed" : orphaned ? "Orphaned dependency" : "Dependency";
+
+  let color: string;
+  let title: string;
+
+  if (pkg.explicit) {
+    color = "bg-green-500";
+    title = "Explicitly installed";
+  } else if (orphaned) {
+    color = "bg-orange-500";
+    title = "Orphaned dependency";
+  } else {
+    color = "bg-blue-500";
+    title = "Dependency";
+  }
 
   return (
     <span className={`absolute top-2 right-2 w-2 h-2 rounded-full ${color}`} title={title}></span>
   );
 }
 
-function DependencyInfo({ pkg }: { pkg: PackageNode }) {
+function DependencyInfo({ pkg }: Readonly<{ pkg: PackageNode }>) {
   const orphaned = isOrphaned(pkg);
-  const text = pkg.explicit
-    ? "Explicitly installed"
-    : orphaned
-    ? "Orphaned dependency"
-    : `Required by ${pkg.required_by.length} package${pkg.required_by.length === 1 ? "" : "s"}`;
+
+  let text: string;
+
+  if (pkg.explicit) {
+    text = "Explicitly installed";
+  } else if (orphaned) {
+    text = "Orphaned dependency";
+  } else {
+    text = `Required by ${pkg.required_by.length} package${pkg.required_by.length === 1 ? "" : "s"}`;
+  }
 
   return (
     <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">{text}</div>
   );
 }
 
-export default function OrphanedPackages({ nodes, loading, error }: ViewProps) {
+export default function OrphanedPackages({ nodes, loading, error }: Readonly<ViewProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<PackageNode | null>(null);
 

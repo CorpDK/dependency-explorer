@@ -33,7 +33,7 @@ export default function PackageItem({
   onClick,
   showOrphanedIndicator = false,
   extraInfo,
-}: PackageItemProps) {
+}: Readonly<PackageItemProps>) {
   const styles = variantStyles[variant];
   const isOrphaned = !pkg.explicit && pkg.required_by.length === 0;
 
