@@ -2,28 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-
-// Type definitions for package data
-interface PackageNode extends d3.SimulationNodeDatum {
-  id: string;
-  explicit: boolean;
-  version: string;
-  depends_on: string[];
-  required_by: string[];
-}
+import { PackageNode, ViewProps } from "@/types/package";
+import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
+import Sidebar from "@/components/graph/Sidebar";
 
 interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   source: string | PackageNode;
   target: string | PackageNode;
 }
 
-interface DependencyGraphProps {
-  nodes: PackageNode[];
-  loading: boolean;
-  error: string;
-}
-
-export default function DependencyGraph({ nodes, loading, error }: DependencyGraphProps) {
+export default function DependencyGraph({ nodes, loading, error }: ViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [links, setLinks] = useState<PackageLink[]>([]);
@@ -66,13 +56,13 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
     // Stop and cleanup any existing simulation FIRST
     if (simulationRef.current) {
       simulationRef.current.stop();
-      simulationRef.current.on("tick", null); // Remove all tick listeners
+      simulationRef.current.on("tick", null);
       simulationRef.current = null;
     }
 
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove(); // Clear DOM
-    svg.on(".zoom", null); // Remove zoom handlers
+    svg.selectAll("*").remove();
+    svg.on(".zoom", null);
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
@@ -147,11 +137,10 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
 
     // Aggressive optimization for large graphs
     if (nodes.length > 500) {
-      simulation.alphaDecay(0.05); // Faster convergence
-      simulation.velocityDecay(0.6); // More damping
+      simulation.alphaDecay(0.05);
+      simulation.velocityDecay(0.6);
     }
 
-    // Use a single tick handler reference
     const tickHandler = () => {
       link
         .attr("x1", (d) => (d.source as PackageNode).x || 0)
@@ -164,14 +153,12 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
 
     simulation.on("tick", tickHandler);
 
-    // Auto-stop simulation when it converges (critical for memory)
     simulation.on("end", () => {
       console.log("Simulation converged and stopped");
     });
 
     simulationRef.current = simulation;
 
-    // Handle window resize
     const handleResize = () => {
       if (!containerRef.current || !simulation) return;
       const newWidth = containerRef.current.clientWidth;
@@ -182,12 +169,10 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
 
     window.addEventListener("resize", handleResize);
 
-    // Cleanup function
     return () => {
       window.removeEventListener("resize", handleResize);
       simulation.stop();
-      simulation.on("tick", null); // Remove tick listener
-      // Clear D3 selections to release DOM references
+      simulation.on("tick", null);
       svg.selectAll("*").remove();
       svg.on(".zoom", null);
     };
@@ -216,40 +201,21 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
     }
   };
 
+  const handleSidebarClose = () => {
+    setSidebarHidden(true);
+    setSelectedNode(null);
+  };
+
   if (loading) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
-          <div className="border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-800 dark:border-t-zinc-300 rounded-full w-10 h-10 animate-spin mx-auto mb-4"></div>
-          <div>Loading dependency graph...</div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading dependency graph..." />;
   }
 
   if (error) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
-          <strong>Error loading graph</strong>
-          <br />
-          {error}
-          <br />
-          <br />
-          <small>Make sure JSON files exist in the data directory.</small>
-        </div>
-      </div>
-    );
+    return <ErrorState error={error} />;
   }
 
   if (nodes.length === 0) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
-          Please select a data file from the dropdown above to visualize the dependency graph.
-        </div>
-      </div>
-    );
+    return <EmptyState message="Please select a data file from the dropdown above to visualize the dependency graph." />;
   }
 
   return (
@@ -257,93 +223,12 @@ export default function DependencyGraph({ nodes, loading, error }: DependencyGra
       <div className="flex-1 relative" ref={containerRef}>
         <svg className="w-full h-full cursor-grab active:cursor-grabbing" ref={svgRef}></svg>
       </div>
-
-      <div className={`w-96 bg-white dark:bg-zinc-800 shadow-[-2px_0_8px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_8px_rgba(0,0,0,0.3)] overflow-y-auto p-6 transition-transform duration-300 ease-in-out relative z-[5] ${sidebarHidden ? "translate-x-full absolute right-0 h-full" : ""}`}>
-          <button
-            className="absolute top-4 right-4 bg-transparent border-none text-2xl text-zinc-600 dark:text-zinc-400 cursor-pointer w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700"
-            onClick={() => {
-              setSidebarHidden(true);
-              setSelectedNode(null);
-            }}
-          >
-            ×
-          </button>
-          {selectedNode && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 break-words">
-                {selectedNode.id}
-              </h2>
-              <div className="mb-6">
-                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
-                  Version
-                </strong>
-                <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 px-2.5 py-1.5 rounded inline-block">
-                  {selectedNode.version}
-                </span>
-              </div>
-              <div className="mb-6">
-                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
-                  Package Type
-                </strong>
-                <span
-                  className={`inline-block px-3 py-1.5 rounded text-sm font-medium ${
-                    selectedNode.explicit
-                      ? "bg-green-500 text-white"
-                      : "bg-blue-500 text-white"
-                  }`}
-                >
-                  {selectedNode.explicit ? "Explicitly Installed" : "Dependency"}
-                </span>
-              </div>
-              <div className="mb-6">
-                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
-                  Dependencies ({selectedNode.depends_on.length})
-                </strong>
-                {selectedNode.depends_on.length > 0 ? (
-                  <ul className="list-none max-h-[300px] overflow-y-auto">
-                    {selectedNode.depends_on.map((dep) => (
-                      <li key={dep} className="mb-1.5">
-                        <button
-                          className="w-full p-2 bg-zinc-100 dark:bg-zinc-700 border-none rounded text-sm font-mono text-left cursor-pointer transition-all hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-2px]"
-                          onClick={() => handlePackageClick(dep)}
-                        >
-                          {dep}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">
-                    No dependencies
-                  </div>
-                )}
-              </div>
-              <div className="mb-6">
-                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
-                  Required By ({selectedNode.required_by.length})
-                </strong>
-                {selectedNode.required_by.length > 0 ? (
-                  <ul className="list-none max-h-[300px] overflow-y-auto">
-                    {selectedNode.required_by.map((req) => (
-                      <li key={req} className="mb-1.5">
-                        <button
-                          className="w-full p-2 bg-zinc-100 dark:bg-zinc-700 border-none rounded text-sm font-mono text-left cursor-pointer transition-all hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-2px]"
-                          onClick={() => handlePackageClick(req)}
-                        >
-                          {req}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">
-                    Not required by any package
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-      </div>
+      <Sidebar
+        isHidden={sidebarHidden}
+        selectedNode={selectedNode}
+        onClose={handleSidebarClose}
+        onPackageClick={handlePackageClick}
+      />
     </div>
   );
 }

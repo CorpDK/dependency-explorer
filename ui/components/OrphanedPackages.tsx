@@ -1,47 +1,44 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { PackageNode, ViewProps } from "@/types/package";
+import { fuzzyMatch, isOrphaned } from "@/lib/utils";
+import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
+import SearchInput from "@/components/ui/SearchInput";
+import PackageItem from "@/components/ui/PackageItem";
 
-interface PackageNode {
-  id: string;
-  explicit: boolean;
-  version: string;
-  depends_on: string[];
-  required_by: string[];
+function DependencyIndicator({ pkg }: { pkg: PackageNode }) {
+  const orphaned = isOrphaned(pkg);
+  const color = pkg.explicit ? "bg-green-500" : orphaned ? "bg-orange-500" : "bg-blue-500";
+  const title = pkg.explicit ? "Explicitly installed" : orphaned ? "Orphaned dependency" : "Dependency";
+
+  return (
+    <span className={`absolute top-2 right-2 w-2 h-2 rounded-full ${color}`} title={title}></span>
+  );
 }
 
-interface OrphanedPackagesProps {
-  nodes: PackageNode[];
-  loading: boolean;
-  error: string;
+function DependencyInfo({ pkg }: { pkg: PackageNode }) {
+  const orphaned = isOrphaned(pkg);
+  const text = pkg.explicit
+    ? "Explicitly installed"
+    : orphaned
+    ? "Orphaned dependency"
+    : `Required by ${pkg.required_by.length} package${pkg.required_by.length === 1 ? "" : "s"}`;
+
+  return (
+    <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">{text}</div>
+  );
 }
 
-// Simple fuzzy search - checks if all characters of query appear in order in the target
-function fuzzyMatch(query: string, target: string): boolean {
-  if (!query) return true;
-
-  const lowerQuery = query.toLowerCase();
-  const lowerTarget = target.toLowerCase();
-
-  let queryIndex = 0;
-  for (let i = 0; i < lowerTarget.length && queryIndex < lowerQuery.length; i++) {
-    if (lowerTarget[i] === lowerQuery[queryIndex]) {
-      queryIndex++;
-    }
-  }
-
-  return queryIndex === lowerQuery.length;
-}
-
-export default function OrphanedPackages({ nodes, loading, error }: OrphanedPackagesProps) {
+export default function OrphanedPackages({ nodes, loading, error }: ViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<PackageNode | null>(null);
 
-  // Filter orphaned packages: dependencies with no parents (required_by is empty)
+  // Filter orphaned packages: dependencies with no parents
   const orphanedPackages = useMemo(() => {
-    return nodes.filter(
-      (node) => !node.explicit && node.required_by.length === 0
-    );
+    return nodes.filter((node) => isOrphaned(node));
   }, [nodes]);
 
   // Filter and sort orphaned packages based on search query
@@ -51,7 +48,7 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
       .sort((a, b) => a.id.localeCompare(b.id));
   }, [orphanedPackages, searchQuery]);
 
-  // Get the dependencies of the selected package (as full PackageNode objects)
+  // Get the dependencies of the selected package
   const selectedPackageDependencies = useMemo(() => {
     if (!selectedPackage) return [];
 
@@ -69,44 +66,16 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
     }
   };
 
-  const handleDependencyClick = (pkg: PackageNode) => {
-    setSelectedPackage(pkg);
-  };
-
   if (loading) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
-          <div className="border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-800 dark:border-t-zinc-300 rounded-full w-10 h-10 animate-spin mx-auto mb-4"></div>
-          <div>Loading package data...</div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading package data..." />;
   }
 
   if (error) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
-          <strong>Error loading data</strong>
-          <br />
-          {error}
-          <br />
-          <br />
-          <small>Make sure JSON files exist in the data directory.</small>
-        </div>
-      </div>
-    );
+    return <ErrorState error={error} />;
   }
 
   if (nodes.length === 0) {
-    return (
-      <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <div className="text-center text-lg text-zinc-600 dark:text-zinc-400">
-          Please select a data file from the dropdown above to view orphaned packages.
-        </div>
-      </div>
-    );
+    return <EmptyState message="Please select a data file from the dropdown above to view orphaned packages." />;
   }
 
   return (
@@ -125,12 +94,11 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
               Dependency packages that are not required by any other package
             </p>
-            <input
-              type="text"
+            <SearchInput
               placeholder="Search orphaned packages..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-3 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              onChange={setSearchQuery}
+              ringColor="focus:ring-orange-500"
             />
             <div className="overflow-y-auto max-h-[calc(100vh-380px)]">
               {sortedOrphanedPackages.length === 0 ? (
@@ -139,31 +107,21 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
                 </div>
               ) : (
                 <ul className="space-y-1">
-                  {sortedOrphanedPackages.map((pkg) => {
-                    const isSelected = selectedPackage?.id === pkg.id;
-                    return (
-                      <li key={pkg.id}>
-                        <button
-                          onClick={() => handlePackageClick(pkg)}
-                          className={`w-full text-left p-2 rounded transition-colors ${
-                            isSelected
-                              ? "bg-orange-100 dark:bg-orange-900/40 ring-2 ring-orange-500"
-                              : "bg-zinc-50 dark:bg-zinc-700/50 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                          }`}
-                        >
-                          <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100">
-                            {pkg.id}
-                          </div>
-                          <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                            v{pkg.version}
-                          </div>
+                  {sortedOrphanedPackages.map((pkg) => (
+                    <li key={pkg.id}>
+                      <PackageItem
+                        pkg={pkg}
+                        variant="orphaned"
+                        isHighlighted={selectedPackage?.id === pkg.id}
+                        onClick={() => handlePackageClick(pkg)}
+                        extraInfo={
                           <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
                             {pkg.depends_on.length} {pkg.depends_on.length === 1 ? "dependency" : "dependencies"}
                           </div>
-                        </button>
-                      </li>
-                    );
-                  })}
+                        }
+                      />
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>
@@ -198,47 +156,23 @@ export default function OrphanedPackages({ nodes, loading, error }: OrphanedPack
                     </div>
                   ) : (
                     <ul className="space-y-1">
-                      {selectedPackageDependencies.map((dep) => {
-                        const isOrphaned = !dep.explicit && dep.required_by.length === 0;
-                        return (
-                          <li key={dep.id}>
-                            <button
-                              onClick={() => handleDependencyClick(dep)}
-                              className="w-full text-left p-2 rounded transition-colors relative bg-zinc-50 dark:bg-zinc-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            >
-                              <span
-                                className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
-                                  dep.explicit
-                                    ? "bg-green-500"
-                                    : isOrphaned
-                                    ? "bg-orange-500"
-                                    : "bg-blue-500"
-                                }`}
-                                title={
-                                  dep.explicit
-                                    ? "Explicitly installed"
-                                    : isOrphaned
-                                    ? "Orphaned dependency"
-                                    : "Dependency"
-                                }
-                              ></span>
-                              <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 pr-4">
-                                {dep.id}
-                              </div>
-                              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                                v{dep.version}
-                              </div>
-                              <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 italic">
-                                {dep.explicit
-                                  ? "Explicitly installed"
-                                  : isOrphaned
-                                  ? "Orphaned dependency"
-                                  : `Required by ${dep.required_by.length} package${dep.required_by.length === 1 ? "" : "s"}`}
-                              </div>
-                            </button>
-                          </li>
-                        );
-                      })}
+                      {selectedPackageDependencies.map((dep) => (
+                        <li key={dep.id}>
+                          <button
+                            onClick={() => setSelectedPackage(dep)}
+                            className="w-full text-left p-2 rounded transition-colors relative bg-zinc-50 dark:bg-zinc-700/50 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                            <DependencyIndicator pkg={dep} />
+                            <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 pr-4">
+                              {dep.id}
+                            </div>
+                            <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                              v{dep.version}
+                            </div>
+                            <DependencyInfo pkg={dep} />
+                          </button>
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </div>

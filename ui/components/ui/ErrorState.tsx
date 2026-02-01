@@ -1,0 +1,19 @@
+interface ErrorStateProps {
+  error: string;
+  hint?: string;
+}
+
+export default function ErrorState({ error, hint = "Make sure JSON files exist in the data directory." }: ErrorStateProps) {
+  return (
+    <div className="h-full w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+      <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
+        <strong>Error loading data</strong>
+        <br />
+        {error}
+        <br />
+        <br />
+        <small>{hint}</small>
+      </div>
+    </div>
+  );
+}

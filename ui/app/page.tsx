@@ -4,37 +4,12 @@ import { useState, useEffect } from "react";
 import DependencyGraph from "@/components/DependencyGraph";
 import PackageList from "@/components/PackageList";
 import OrphanedPackages from "@/components/OrphanedPackages";
-
-type ViewMode = "graph" | "list" | "orphaned";
-
-interface PackageInfo {
-  explicit: boolean;
-  version: string;
-  depends_on: string[];
-  required_by: string[];
-}
-
-interface GraphInfo {
-  os: string;
-  hostname: string;
-  timestamp: string;
-  shell: string;
-}
-
-interface RawGraphData {
-  info?: GraphInfo;
-  nodes: {
-    [packageName: string]: PackageInfo;
-  };
-}
-
-export interface PackageNode {
-  id: string;
-  explicit: boolean;
-  version: string;
-  depends_on: string[];
-  required_by: string[];
-}
+import SystemInfo from "@/components/header/SystemInfo";
+import FileSelector from "@/components/header/FileSelector";
+import ViewTabs from "@/components/header/ViewTabs";
+import Legend from "@/components/header/Legend";
+import { ViewMode, PackageNode, GraphInfo, RawGraphData } from "@/types/package";
+import { transformData, countPackages } from "@/lib/utils";
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -89,113 +64,19 @@ export default function Home() {
     loadData();
   }, [selectedFile]);
 
-  function transformData(rawData: RawGraphData): PackageNode[] {
-    const nodes: PackageNode[] = [];
-
-    if (!rawData.nodes || typeof rawData.nodes !== "object") {
-      throw new Error("Invalid graph.json format: missing nodes object");
-    }
-
-    Object.entries(rawData.nodes).forEach(([name, info]) => {
-      const node: PackageNode = {
-        id: name,
-        explicit: info.explicit || false,
-        version: info.version || "unknown",
-        depends_on: info.depends_on || [],
-        required_by: info.required_by || [],
-      };
-      nodes.push(node);
-    });
-
-    return nodes;
-  }
-
-  const explicitCount = nodes.filter((n) => n.explicit).length;
-  const dependencyCount = nodes.length - explicitCount;
+  const { explicit, dependency, total } = countPackages(nodes);
 
   return (
     <div className="flex flex-col h-screen">
       {/* Header with file selection */}
       <header className="bg-zinc-800 dark:bg-zinc-950 text-white px-6 py-4 shadow-md z-10">
         <h1 className="text-2xl font-semibold mb-3">Package Dependency Explorer</h1>
-        {graphInfo && (
-          <div className="flex flex-wrap gap-6 text-sm text-zinc-400 mb-3">
-            <span>
-              <strong className="text-zinc-300">OS:</strong> {graphInfo.os}
-            </span>
-            <span>
-              <strong className="text-zinc-300">Host:</strong> {graphInfo.hostname}
-            </span>
-            <span>
-              <strong className="text-zinc-300">Shell Used:</strong> {graphInfo.shell}
-            </span>
-            <span>
-              <strong className="text-zinc-300">Collected On:</strong> {graphInfo.timestamp.replaceAll("-", "/").replace(/(\d{4}\/\d{2}\/\d{2})\/(\d{2})(\d{2})(\d{2})/, "$1 $2:$3:$4")}
-            </span>
-          </div>
-        )}
+        {graphInfo && <SystemInfo info={graphInfo} />}
         <div className="flex flex-wrap gap-8 text-sm text-zinc-300 mb-3">
-          <span>
-            <select
-              className="px-3 py-1.5 rounded border border-zinc-600 bg-zinc-700 text-white text-sm cursor-pointer transition-colors hover:bg-zinc-600 focus:outline-none focus:border-green-500"
-              value={selectedFile}
-              onChange={(e) => setSelectedFile(e.target.value)}
-            >
-              <option value="">Select a data file...</option>
-              {files.map((file) => (
-                <option key={file} value={file}>
-                  {file}
-                </option>
-              ))}
-            </select>
-          </span>
-          <span>
-            {nodes.length} packages ({explicitCount} explicit, {dependencyCount} dependencies)
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span> Explicit
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dependency
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Orphaned
-          </span>
+          <FileSelector files={files} selectedFile={selectedFile} onChange={setSelectedFile} />
+          <Legend explicitCount={explicit} dependencyCount={dependency} totalCount={total} />
         </div>
-
-        {/* View Selector Tabs */}
-        <div className="flex gap-1 border-t border-zinc-700 pt-3">
-          <button
-            onClick={() => setViewMode("list")}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              viewMode === "list"
-                ? "bg-zinc-700 text-white"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50"
-            }`}
-          >
-            List View
-          </button>
-          <button
-            onClick={() => setViewMode("graph")}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              viewMode === "graph"
-                ? "bg-zinc-700 text-white"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50"
-            }`}
-          >
-            Graph View
-          </button>
-          <button
-            onClick={() => setViewMode("orphaned")}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              viewMode === "orphaned"
-                ? "bg-zinc-700 text-white"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50"
-            }`}
-          >
-            Orphaned Packages
-          </button>
-        </div>
+        <ViewTabs viewMode={viewMode} onViewChange={setViewMode} />
       </header>
 
       {/* View Content */}
