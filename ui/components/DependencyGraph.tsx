@@ -285,13 +285,13 @@ export default function DependencyGraph() {
   const dependencyCount = nodes.length - explicitCount;
 
   return (
-    <div id="app">
-      <header>
-        <h1>Manjaro Package Dependency Graph</h1>
-        <div id="stats">
+    <div className="flex flex-col h-screen bg-zinc-50 dark:bg-zinc-900">
+      <header className="bg-zinc-800 dark:bg-zinc-950 text-white px-6 py-4 shadow-md z-10">
+        <h1 className="text-2xl font-semibold mb-2">Manjaro Package Dependency Graph</h1>
+        <div className="flex flex-wrap gap-8 text-sm text-zinc-300">
           <span>
             <select
-              className="file-selector"
+              className="px-3 py-1.5 rounded border border-zinc-600 bg-zinc-700 text-white text-sm cursor-pointer transition-colors hover:bg-zinc-600 focus:outline-none focus:border-green-500"
               value={selectedFile}
               onChange={(e) => setSelectedFile(e.target.value)}
             >
@@ -303,34 +303,34 @@ export default function DependencyGraph() {
               ))}
             </select>
           </span>
-          <span id="package-count">
+          <span>
             {nodes.length} packages ({explicitCount} explicit, {dependencyCount} dependencies)
           </span>
-          <span className="legend">
-            <span className="legend-dot explicit"></span> Explicit
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span> Explicit
           </span>
-          <span className="legend">
-            <span className="legend-dot dependency"></span> Dependency
+          <span className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dependency
           </span>
         </div>
       </header>
 
-      <main>
-        <div id="graph-container" ref={containerRef}>
+      <main className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 relative bg-zinc-50 dark:bg-zinc-900" ref={containerRef}>
           {!selectedFile && !loading && !error && (
-            <div id="loading">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg text-zinc-600 dark:text-zinc-400">
               <div>Please select a data file from the dropdown above to visualize the dependency graph.</div>
             </div>
           )}
           {loading && (
-            <div id="loading">
-              <div className="spinner"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-lg text-zinc-600 dark:text-zinc-400">
+              <div className="border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-800 dark:border-t-zinc-300 rounded-full w-10 h-10 animate-spin mx-auto mb-4"></div>
               <div>Loading dependency graph...</div>
             </div>
           )}
           {error && (
-            <div id="loading">
-              <div className="error">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+              <div className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-4 rounded max-w-md">
                 <strong>Error loading graph</strong>
                 <br />
                 {error}
@@ -340,12 +340,12 @@ export default function DependencyGraph() {
               </div>
             </div>
           )}
-          {selectedFile && !loading && !error && <svg id="graph" ref={svgRef}></svg>}
+          {selectedFile && !loading && !error && <svg className="w-full h-full cursor-grab active:cursor-grabbing" ref={svgRef}></svg>}
         </div>
 
-        <div id="sidebar" className={sidebarHidden ? "hidden" : ""}>
+        <div className={`w-96 bg-white dark:bg-zinc-800 shadow-[-2px_0_8px_rgba(0,0,0,0.1)] dark:shadow-[-2px_0_8px_rgba(0,0,0,0.3)] overflow-y-auto p-6 transition-transform duration-300 ease-in-out relative z-[5] ${sidebarHidden ? "translate-x-full absolute right-0 h-full" : ""}`}>
           <button
-            className="close-sidebar"
+            className="absolute top-4 right-4 bg-transparent border-none text-2xl text-zinc-600 dark:text-zinc-400 cursor-pointer w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700"
             onClick={() => {
               setSidebarHidden(true);
               setSelectedNode(null);
@@ -354,26 +354,42 @@ export default function DependencyGraph() {
             ×
           </button>
           {selectedNode && (
-            <div className="package-details">
-              <h2>{selectedNode.id}</h2>
-              <div className="detail-section">
-                <strong>Version</strong>
-                <span className="version">{selectedNode.version}</span>
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 break-words">
+                {selectedNode.id}
+              </h2>
+              <div className="mb-6">
+                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
+                  Version
+                </strong>
+                <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 px-2.5 py-1.5 rounded inline-block">
+                  {selectedNode.version}
+                </span>
               </div>
-              <div className="detail-section">
-                <strong>Package Type</strong>
-                <span className={`badge ${selectedNode.explicit ? "explicit" : "dependency"}`}>
+              <div className="mb-6">
+                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
+                  Package Type
+                </strong>
+                <span
+                  className={`inline-block px-3 py-1.5 rounded text-sm font-medium ${
+                    selectedNode.explicit
+                      ? "bg-green-500 text-white"
+                      : "bg-blue-500 text-white"
+                  }`}
+                >
                   {selectedNode.explicit ? "Explicitly Installed" : "Dependency"}
                 </span>
               </div>
-              <div className="detail-section">
-                <strong>Dependencies ({selectedNode.depends_on.length})</strong>
+              <div className="mb-6">
+                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
+                  Dependencies ({selectedNode.depends_on.length})
+                </strong>
                 {selectedNode.depends_on.length > 0 ? (
-                  <ul>
+                  <ul className="list-none max-h-[300px] overflow-y-auto">
                     {selectedNode.depends_on.map((dep) => (
-                      <li key={dep}>
+                      <li key={dep} className="mb-1.5">
                         <button
-                          className="clickable-package"
+                          className="w-full p-2 bg-zinc-100 dark:bg-zinc-700 border-none rounded text-sm font-mono text-left cursor-pointer transition-all hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-2px]"
                           onClick={() => handlePackageClick(dep)}
                         >
                           {dep}
@@ -382,17 +398,21 @@ export default function DependencyGraph() {
                     ))}
                   </ul>
                 ) : (
-                  <div className="empty-list">No dependencies</div>
+                  <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">
+                    No dependencies
+                  </div>
                 )}
               </div>
-              <div className="detail-section">
-                <strong>Required By ({selectedNode.required_by.length})</strong>
+              <div className="mb-6">
+                <strong className="block text-zinc-600 dark:text-zinc-400 text-xs uppercase tracking-wider mb-2">
+                  Required By ({selectedNode.required_by.length})
+                </strong>
                 {selectedNode.required_by.length > 0 ? (
-                  <ul>
+                  <ul className="list-none max-h-[300px] overflow-y-auto">
                     {selectedNode.required_by.map((req) => (
-                      <li key={req}>
+                      <li key={req} className="mb-1.5">
                         <button
-                          className="clickable-package"
+                          className="w-full p-2 bg-zinc-100 dark:bg-zinc-700 border-none rounded text-sm font-mono text-left cursor-pointer transition-all hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline focus:outline-2 focus:outline-blue-500 focus:outline-offset-[-2px]"
                           onClick={() => handlePackageClick(req)}
                         >
                           {req}
@@ -401,7 +421,9 @@ export default function DependencyGraph() {
                     ))}
                   </ul>
                 ) : (
-                  <div className="empty-list">Not required by any package</div>
+                  <div className="text-zinc-500 dark:text-zinc-500 italic text-sm">
+                    Not required by any package
+                  </div>
                 )}
               </div>
             </div>

@@ -200,3 +200,40 @@ cd ui && pnpm start  # Production server on port 3000
 - Must be production-ready and runnable as-is
 - Clean, readable code with appropriate comments
 - Strict adherence to the specification in AGENTS.md
+
+## Workflow Optimization & Token Efficiency
+
+### Response Style
+- **Be concise**: Provide direct, actionable responses without excessive explanations
+- **Summarize over explain**: Focus on key changes rather than detailed descriptions
+- **Skip pleasantries**: Get straight to the task at hand
+
+### File Context
+Files that are commonly modified together:
+- `ui/app/layout.tsx` + `ui/app/globals.css` (styling/theme changes)
+- `ui/components/DependencyGraph.tsx` + `ui/app/globals.css` (UI/visualization changes)
+- `ui/package.json` + `ui/pnpm-lock.yaml` + `ui/tsconfig.json` (dependency/config updates)
+
+### Common Operations
+When the user says:
+- **"commit"** → Run git workflow: status, diff, log, then commit with proper message
+- **"upgrade"** → Compare reference project, update dependencies, config files, then test
+- **"fix [issue]"** → Identify root cause, apply fix, verify with minimal explanation
+- **"add [feature]"** → Implement feature following existing patterns without asking for approval unless truly ambiguous
+
+### Efficiency Guidelines
+1. **Batch file reads**: When multiple files need changes, read them in parallel
+2. **Use git for context**: Leverage `git diff` and `git status` instead of re-reading entire files
+3. **Reference files by path**: User provides file paths directly, reducing search tokens
+4. **Assume confidence**: Make reasonable technical decisions without excessive back-and-forth
+5. **Create backups only when requested**: Don't proactively create backups unless changes are risky
+6. **Use targeted reads**: For large files, use offset/limit parameters to read specific sections
+
+### Expected Workflow Patterns
+- **Configuration updates**: Update all related config files in one operation
+- **Styling changes**: Update both CSS and components together
+- **Dependency changes**: Update package.json, run install, verify build
+- **Git operations**: Complete all git steps (status, diff, commit) in sequence without prompting
+
+### Key Principle
+**Optimize for throughput over safety**: The user maintains git backups and can easily revert. Prioritize getting work done efficiently over excessive caution or validation.
