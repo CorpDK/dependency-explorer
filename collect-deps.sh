@@ -11,6 +11,14 @@
 set -euo pipefail
 
 #######################################
+# Distribution check
+#######################################
+if [ ! -f /etc/os-release ] || ! grep -qiE 'arch|manjaro|endeavouros' /etc/os-release || ! command -v pacman >/dev/null 2>&1; then
+    echo "Error: This script must be run on an Arch-based distribution (pacman not found or incompatible OS)." >&2
+    exit 1
+fi
+
+#######################################
 # Requirement check
 #######################################
 REQUIRED_PKGS=("pactree" "jq" "bc" "hostname")
