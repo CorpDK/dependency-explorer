@@ -21,7 +21,7 @@ fi
 #######################################
 # Requirement check
 #######################################
-REQUIRED_PKGS=("pactree" "jq" "bc" "hostname")
+REQUIRED_PKGS=("pactree" "jq" "bc" "hostname" "pv")
 MISSING_PKGS=()
 
 for cmd in "${REQUIRED_PKGS[@]}"; do
@@ -89,7 +89,7 @@ format_duration() {
 }
 
 log_phase() {
-  printf "\n[%s] %s\n" "$(date '+%H:%M:%S')" "$1" >&2
+  printf "\n[%s] %s\n" "$(date '+%H:%M:%SZ%z')" "$1" >&2
 }
 
 PHASE_START=0
@@ -124,7 +124,7 @@ else
     trap 'rm -rf "$TMP_DIR"' EXIT
 fi
 
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+TIMESTAMP=$(date +%Y-%m-%dT%H:%M:%SZ%z)
 OUTPUT_DIR="ui/public/data"
 OUTPUT_FILE="${OUTPUT_DIR}/${OS_NAME}-${HOSTNAME}-${TIMESTAMP}.json"
 mkdir -p "${OUTPUT_DIR}"
@@ -238,7 +238,8 @@ get_repo() {
 log_phase "Precomputing dependency trees (parallel: $JOBS jobs)"
 phase_begin
 printf '%s\n' "${all_packages[@]}" |
-xargs -P "$JOBS" -I{} $SHELL_NAME ./collect-pactree.sh {} "$TMP_DIR"
+  pv -l -s "$package_count" -N "pactree" |
+  xargs -P "$JOBS" -I{} $SHELL_NAME ./collect-pactree.sh {} "$TMP_DIR"
 # Check for failures
 if [[ -s "$TMP_DIR/failures.log" ]]; then
   echo -e "\n--- Package Collection Failures ---"
@@ -278,8 +279,8 @@ for pkg in "${all_packages[@]}"; do
         "$repo" \
         "$is_local" \
         "${URL_CACHE[$pkg]:-}" \
-        "${deps:-}" "${rdeps:-}" "${odeps:-}" "${ordeps:-}" >> "$MANIFEST"
-done
+        "${deps:-}" "${rdeps:-}" "${odeps:-}" "${ordeps:-}"
+done | pv -l -s "$package_count" -N "json-gen" > "$MANIFEST"
 phase_end
 
 log_phase "Using jq to finalize JSON structure"
