@@ -7,7 +7,7 @@ import { fuzzyMatch, sortPackagesByName } from "./utils";
 export function filterAndSortPackages(
   packages: PackageNode[],
   query: string,
-  filter?: (pkg: PackageNode) => boolean
+  filter?: (pkg: PackageNode) => boolean,
 ): PackageNode[] {
   let filtered = packages;
 
@@ -30,10 +30,10 @@ export function filterAndSortPackages(
  */
 export function filterByType(
   packages: PackageNode[],
-  type: "explicit" | "dependency"
+  type: "explicit" | "dependency",
 ): PackageNode[] {
   return packages.filter((pkg) =>
-    type === "explicit" ? pkg.explicit : !pkg.explicit
+    type === "explicit" ? pkg.explicit : !pkg.explicit,
   );
 }
 
@@ -41,7 +41,9 @@ export function filterByType(
  * Filter orphaned packages (dependencies with no parents)
  */
 export function filterOrphaned(packages: PackageNode[]): PackageNode[] {
-  return packages.filter((pkg) => !pkg.explicit && pkg.required_by.length === 0);
+  return packages.filter(
+    (pkg) => !pkg.explicit && pkg.required_by.length === 0,
+  );
 }
 
 /**

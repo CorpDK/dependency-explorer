@@ -16,7 +16,7 @@ export { transformData } from "./transformation";
 export {
   collectDependencies,
   collectPackageTree,
+  countPackages,
   isOrphaned,
   sortPackagesByName,
-  countPackages,
 } from "./packages";

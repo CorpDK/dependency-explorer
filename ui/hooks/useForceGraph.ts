@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { PackageLink, PackageNode } from "@/types/package";
 import * as d3 from "d3";
-import { PackageNode, PackageLink } from "@/types/package";
+import { useEffect, useRef } from "react";
 
 interface UseForceGraphProps {
   svgRef: React.RefObject<SVGSVGElement | null>;
@@ -10,7 +10,10 @@ interface UseForceGraphProps {
   onNodeClick: (node: PackageNode) => void;
   highlightedNodeId?: string;
   // Advanced options
-  zoomBehaviorRef?: React.MutableRefObject<d3.ZoomBehavior<SVGSVGElement, unknown> | null>;
+  zoomBehaviorRef?: React.RefObject<d3.ZoomBehavior<
+    SVGSVGElement,
+    unknown
+  > | null>;
   zoomExtent?: [number, number];
   onZoomChange?: (scale: number) => void;
   enableResize?: boolean;

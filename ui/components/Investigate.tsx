@@ -1,24 +1,28 @@
 "use client";
 
-import {
-  PackageNode,
-  PackageLink,
-  ViewProps,
-  InvestigateFilterType,
-} from "@/types/package";
-import { fuzzyMatch, collectPackageTree, sortPackagesByName } from "@/lib/utils";
-import { getLinkType } from "@/lib/packageTypeUtils";
-import { updateDualSelection } from "@/lib/d3Utils";
-import { ZOOM_CONFIG } from "@/lib/constants";
-import LoadingState from "@/components/ui/LoadingState";
-import ErrorState from "@/components/ui/ErrorState";
-import EmptyState from "@/components/ui/EmptyState";
 import Sidebar from "@/components/graph/Sidebar";
-import PackageListPanel from "@/components/investigate/PackageListPanel";
 import GraphPanel from "@/components/investigate/GraphPanel";
+import PackageListPanel from "@/components/investigate/PackageListPanel";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import LoadingState from "@/components/ui/LoadingState";
 import { useForceGraph } from "@/hooks/useForceGraph";
 import { useZoomHandlers } from "@/hooks/useZoomHandlers";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { ZOOM_CONFIG } from "@/lib/constants";
+import { updateDualSelection } from "@/lib/d3Utils";
+import { getLinkType } from "@/lib/packageTypeUtils";
+import {
+  collectPackageTree,
+  fuzzyMatch,
+  sortPackagesByName,
+} from "@/lib/utils";
+import {
+  InvestigateFilterType,
+  PackageLink,
+  PackageNode,
+  ViewProps,
+} from "@/types/package";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function Investigate({
   nodes,
@@ -36,9 +40,10 @@ export default function Investigate({
   const [currentZoom, setCurrentZoom] = useState(1);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(
-    null,
-  );
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
+    SVGSVGElement,
+    unknown
+  > | null>(null);
 
   // Memoize zoom extent to prevent unnecessary re-renders
   const zoomExtent = useMemo<[number, number]>(
@@ -116,7 +121,7 @@ export default function Investigate({
       svgRef,
       selectedPackage?.id ?? null,
       selectedGraphNode?.id ?? null,
-      sidebarHidden
+      sidebarHidden,
     );
   }, [selectedGraphNode, sidebarHidden, selectedPackage]);
 

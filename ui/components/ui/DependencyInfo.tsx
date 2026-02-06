@@ -1,5 +1,5 @@
-import { PackageNode } from "@/types/package";
 import { usePackageStatus } from "@/hooks/usePackageStatus";
+import { PackageNode } from "@/types/package";
 import { memo } from "react";
 
 interface DependencyInfoProps {

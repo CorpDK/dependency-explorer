@@ -6,7 +6,7 @@ import { PackageNode, SelectedPackage } from "@/types/package";
 export function isExplicitHighlighted(
   pkg: PackageNode,
   selectedPackage: SelectedPackage | null,
-  explicitDependenciesMap: Map<string, Set<string>>
+  explicitDependenciesMap: Map<string, Set<string>>,
 ): boolean {
   if (!selectedPackage) return false;
 
@@ -30,7 +30,7 @@ export function isExplicitHighlighted(
 export function isDependencyHighlighted(
   pkg: PackageNode,
   selectedPackage: SelectedPackage | null,
-  explicitDependenciesMap: Map<string, Set<string>>
+  explicitDependenciesMap: Map<string, Set<string>>,
 ): boolean {
   if (!selectedPackage) return false;
 
@@ -54,7 +54,7 @@ export function isDependencyHighlighted(
 export function isPackageHighlighted(
   pkg: PackageNode,
   selectedPackage: SelectedPackage | null,
-  dependencyMap: Map<string, Set<string>>
+  dependencyMap: Map<string, Set<string>>,
 ): boolean {
   if (!selectedPackage) return false;
 

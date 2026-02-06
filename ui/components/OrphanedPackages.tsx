@@ -1,12 +1,12 @@
 "use client";
 
+import DependencyIndicator from "@/components/ui/DependencyIndicator";
+import DependencyInfo from "@/components/ui/DependencyInfo";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import PackageItem from "@/components/ui/PackageItem";
 import SearchInput from "@/components/ui/SearchInput";
-import DependencyIndicator from "@/components/ui/DependencyIndicator";
-import DependencyInfo from "@/components/ui/DependencyInfo";
 import { fuzzyMatch, isOrphaned, sortPackagesByName } from "@/lib/utils";
 import { PackageNode, ViewProps } from "@/types/package";
 import { useMemo, useState } from "react";

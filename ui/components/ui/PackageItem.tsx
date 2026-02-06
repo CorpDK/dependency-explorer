@@ -1,5 +1,5 @@
-import { PackageNode } from "@/types/package";
 import { isOrphaned as checkIsOrphaned } from "@/lib/utils";
+import { PackageNode } from "@/types/package";
 import { memo } from "react";
 
 type Variant = "explicit" | "dependency" | "orphaned";

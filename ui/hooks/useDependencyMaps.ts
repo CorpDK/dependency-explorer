@@ -1,5 +1,5 @@
-import { PackageNode } from "@/types/package";
 import { collectDependencies } from "@/lib/packages";
+import { PackageNode } from "@/types/package";
 import { useMemo } from "react";
 
 /**

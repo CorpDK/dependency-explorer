@@ -7,7 +7,7 @@ export function collectDependencies(
   packageId: string,
   nodes: PackageNode[],
   visited: Set<string>,
-  result: Set<string>
+  result: Set<string>,
 ): void {
   if (visited.has(packageId)) return;
   visited.add(packageId);
@@ -27,7 +27,7 @@ export function collectDependencies(
 export function collectPackageTree(
   packageId: string,
   nodes: PackageNode[],
-  result: Set<string>
+  result: Set<string>,
 ): void {
   if (result.has(packageId)) return;
   result.add(packageId);

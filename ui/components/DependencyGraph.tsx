@@ -5,13 +5,13 @@ import ZoomControls from "@/components/graph/ZoomControls";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
-import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { useForceGraph } from "@/hooks/useForceGraph";
-import { PackageNode, PackageLink, ViewProps } from "@/types/package";
-import { getLinkType } from "@/lib/packageTypeUtils";
-import { updateNodeSelection } from "@/lib/d3Utils";
+import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { ZOOM_CONFIG } from "@/lib/constants";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { updateNodeSelection } from "@/lib/d3Utils";
+import { getLinkType } from "@/lib/packageTypeUtils";
+import { PackageLink, PackageNode, ViewProps } from "@/types/package";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function DependencyGraph({
   nodes,
@@ -24,9 +24,10 @@ export default function DependencyGraph({
   const [selectedNode, setSelectedNode] = useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(1);
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(
-    null,
-  );
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
+    SVGSVGElement,
+    unknown
+  > | null>(null);
 
   // Memoize zoom extent to prevent unnecessary re-renders
   const zoomExtent = useMemo<[number, number]>(

@@ -22,7 +22,7 @@ export default function ZoomControls({
   const zoomPercent = Math.round(currentZoom * 100);
 
   return (
-    <div className="absolute bottom-6 left-6 bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-3 z-50 flex flex-col gap-2 min-w-[180px] pointer-events-auto">
+    <div className="absolute bottom-6 left-6 bg-white dark:bg-zinc-800 rounded-lg shadow-lg p-3 z-50 flex flex-col gap-2 min-w-45 pointer-events-auto">
       {/* Zoom percentage display */}
       <div className="text-center text-sm font-medium text-zinc-700 dark:text-zinc-300">
         {zoomPercent}%

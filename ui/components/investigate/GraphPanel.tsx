@@ -1,11 +1,11 @@
-import { PackageNode, PackageLink } from "@/types/package";
 import ZoomControls from "@/components/graph/ZoomControls";
+import { PackageLink, PackageNode } from "@/types/package";
 
 interface GraphPanelProps {
   selectedPackage: PackageNode | null;
   subGraphData: { nodes: PackageNode[]; links: PackageLink[] };
-  containerRef: React.RefObject<HTMLDivElement>;
-  svgRef: React.RefObject<SVGSVGElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  svgRef: React.RefObject<SVGSVGElement | null>;
   currentZoom: number;
   minZoom: number;
   maxZoom: number;

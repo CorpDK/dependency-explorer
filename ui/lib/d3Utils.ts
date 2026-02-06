@@ -1,14 +1,13 @@
 import * as d3 from "d3";
-import { PackageNode } from "@/types/package";
 
 /**
  * Update node selection state in the SVG
  * Clears all selections and applies "selected" class to the specified node
  */
 export function updateNodeSelection(
-  svgRef: React.RefObject<SVGSVGElement>,
+  svgRef: React.RefObject<SVGSVGElement | null>,
   selectedNodeId: string | null,
-  sidebarHidden: boolean
+  sidebarHidden: boolean,
 ): void {
   if (!svgRef.current) return;
 
@@ -28,17 +27,20 @@ export function updateNodeSelection(
  * Used in Investigate view with separate classes for list and graph selection
  */
 export function updateDualSelection(
-  svgRef: React.RefObject<SVGSVGElement>,
+  svgRef: React.RefObject<SVGSVGElement | null>,
   listSelectedId: string | null,
   graphSelectedId: string | null,
-  sidebarHidden: boolean
+  sidebarHidden: boolean,
 ): void {
   if (!svgRef.current) return;
 
   const svg = d3.select(svgRef.current);
 
   // Clear all selection classes
-  svg.selectAll(".node").classed("selected", false).classed("list-selected", false);
+  svg
+    .selectAll(".node")
+    .classed("selected", false)
+    .classed("list-selected", false);
 
   // Highlight the node selected from the list (root of the tree)
   if (listSelectedId) {
@@ -61,12 +63,15 @@ export function updateDualSelection(
  * Clear all selection classes from nodes
  */
 export function clearNodeSelection(
-  svgRef: React.RefObject<SVGSVGElement>
+  svgRef: React.RefObject<SVGSVGElement>,
 ): void {
   if (!svgRef.current) return;
 
   const svg = d3.select(svgRef.current);
-  svg.selectAll(".node").classed("selected", false).classed("list-selected", false);
+  svg
+    .selectAll(".node")
+    .classed("selected", false)
+    .classed("list-selected", false);
 }
 
 /**
@@ -75,7 +80,7 @@ export function clearNodeSelection(
 export function applyNodeClass(
   svgRef: React.RefObject<SVGSVGElement>,
   className: string,
-  filter: (d: any) => boolean
+  filter: (d: any) => boolean,
 ): void {
   if (!svgRef.current) return;
 

@@ -4,11 +4,11 @@ import PackageColumn from "@/components/list/PackageColumn";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
-import { fuzzyMatch, sortPackagesByName } from "@/lib/utils";
 import { useDependencyMaps } from "@/hooks/useDependencyMaps";
 import { usePackageHighlighting } from "@/hooks/usePackageHighlighting";
-import { PackageNode, ViewProps, SelectedPackage } from "@/types/package";
-import { useMemo, useState, useCallback } from "react";
+import { fuzzyMatch, sortPackagesByName } from "@/lib/utils";
+import { PackageNode, SelectedPackage, ViewProps } from "@/types/package";
+import { useCallback, useMemo, useState } from "react";
 
 export default function PackageList({
   nodes,
@@ -17,9 +17,8 @@ export default function PackageList({
 }: Readonly<ViewProps>) {
   const [explicitSearchQuery, setExplicitSearchQuery] = useState("");
   const [dependencySearchQuery, setDependencySearchQuery] = useState("");
-  const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(
-    null
-  );
+  const [selectedPackage, setSelectedPackage] =
+    useState<SelectedPackage | null>(null);
 
   // Use custom hooks for dependency maps and highlighting
   const { dependencyMap, explicitDependenciesMap } = useDependencyMaps(nodes);
@@ -93,7 +92,7 @@ export default function PackageList({
 
   const explicitCount = useMemo(
     () => nodes.filter((n) => n.explicit).length,
-    [nodes]
+    [nodes],
   );
   const dependencyCount = nodes.length - explicitCount;
 
@@ -109,7 +108,7 @@ export default function PackageList({
         setDependencySearchQuery("");
       }
     },
-    [selectedPackage]
+    [selectedPackage],
   );
 
   const handleDependencyClick = useCallback(
@@ -124,9 +123,8 @@ export default function PackageList({
         setExplicitSearchQuery("");
       }
     },
-    [selectedPackage]
+    [selectedPackage],
   );
-
 
   if (loading) {
     return <LoadingState message="Loading package data..." />;

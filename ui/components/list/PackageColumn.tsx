@@ -1,6 +1,6 @@
 import PackageItem from "@/components/ui/PackageItem";
 import SearchInput from "@/components/ui/SearchInput";
-import { PackageNode, ColumnVariant } from "@/types/package";
+import { ColumnVariant, PackageNode } from "@/types/package";
 
 interface PackageColumnProps {
   title: string;

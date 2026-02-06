@@ -1,7 +1,7 @@
-import { PackageNode, InvestigateFilterType } from "@/types/package";
-import SearchInput from "@/components/ui/SearchInput";
 import FilterButton from "@/components/ui/FilterButton";
 import PackageItem from "@/components/ui/PackageItem";
+import SearchInput from "@/components/ui/SearchInput";
+import { InvestigateFilterType, PackageNode } from "@/types/package";
 
 interface PackageListPanelProps {
   nodes: PackageNode[];

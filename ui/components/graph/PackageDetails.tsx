@@ -12,7 +12,7 @@ export default function PackageDetails({
 }: Readonly<PackageDetailsProps>) {
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 break-words">
+      <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 wrap-break-word">
         {node.id}
       </h2>
       <div className="mb-6">
