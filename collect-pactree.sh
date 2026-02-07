@@ -27,29 +27,29 @@ OPT_REGEX='/\(optional\)/!d; s/^[├└│─ ]+//; s/([^: ]+).+\[unresolvable\]
 
 # Function to log errors
 log_error() {
-	echo "Failed: ${pkg} ($1)" >>"${LOG_FILE}"
+  echo "Failed: ${pkg} ($1)" >>"${LOG_FILE}"
 }
 
 # 1. Process Direct Dependencies (Mandatory + Optional)
 if output=$(pactree -d1 -o "${pkg}" 2>/dev/null); then
-	# Extract Mandatory Dependencies
-	echo "${output}" | sed -E "${NON_OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.dep" || true
+  # Extract Mandatory Dependencies
+  echo "${output}" | sed -E "${NON_OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.dep" || true
 
-	# Extract Optional Dependencies
-	echo "${output}" | sed -E "${OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.odep" || true
+  # Extract Optional Dependencies
+  echo "${output}" | sed -E "${OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.odep" || true
 else
-	log_error "direct dep tree"
-	touch "${tmp_dir}/${pkg}.dep" "${tmp_dir}/${pkg}.odep"
+  log_error "direct dep tree"
+  touch "${tmp_dir}/${pkg}.dep" "${tmp_dir}/${pkg}.odep"
 fi
 
 # 2. Process Reverse Dependencies (Mandatory + Optional)
 if r_output=$(pactree -r -d1 -o "${pkg}" 2>/dev/null); then
-	# Extract Mandatory Reverse Dependencies
-	echo "${r_output}" | sed -E "${NON_OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.rdep" || true
+  # Extract Mandatory Reverse Dependencies
+  echo "${r_output}" | sed -E "${NON_OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.rdep" || true
 
-	# Extract Optional Reverse Dependencies
-	echo "${r_output}" | sed -E "${OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.ordep" || true
+  # Extract Optional Reverse Dependencies
+  echo "${r_output}" | sed -E "${OPT_REGEX}" | sort -u >"${tmp_dir}/${pkg}.ordep" || true
 else
-	log_error "reverse dep tree"
-	touch "${tmp_dir}/${pkg}.rdep" "${tmp_dir}/${pkg}.ordep"
+  log_error "reverse dep tree"
+  touch "${tmp_dir}/${pkg}.rdep" "${tmp_dir}/${pkg}.ordep"
 fi
