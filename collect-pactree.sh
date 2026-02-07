@@ -27,9 +27,7 @@ OPT_REGEX='/\(optional\)/!d; s/^[├└│─ ]+//; s/([^: ]+).+\[unresolvable\]
 
 # Function to log errors
 log_error() {
-	local timestamp
-	timestamp=$(date '+%H:%M:%SZ%z' || true)
-	echo "[${timestamp}] Failed: ${pkg} ($1)" >>"${LOG_FILE}"
+	echo "Failed: ${pkg} ($1)" >>"${LOG_FILE}"
 }
 
 # 1. Process Direct Dependencies (Mandatory + Optional)
