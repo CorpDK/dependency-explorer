@@ -1,5 +1,5 @@
 {
-  "name": "manjaro-package-dependency-explorer",
+  "name": "dependency-explorer",
   "version": "1.0.0",
   "description": "Interactive browser-based tool for visualizing and exploring package dependencies from pacman-managed systems",
   "private": true,
@@ -7,10 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "rm -rf .next node_modules .turbo node_modules/.cache *.tsbuildinfo"
   },
   "keywords": [
-    "manjaro",
+    "arch",
     "pacman",
     "dependencies",
     "visualization",
