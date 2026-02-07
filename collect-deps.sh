@@ -380,11 +380,16 @@ phase_end
 log_phase "Identifying AUR packages"
 phase_begin
 declare -A FOREIGN
-foreign_list=$(pacman -Qqm)
-while read -r pkg; do
-  FOREIGN["${pkg}"]=1
-done <<<"${foreign_list}"
-aur_count="${#FOREIGN[@]}"
+foreign_list=$(pacman -Qqm || true)
+if [[ -n ${foreign_list} ]]; then
+  while read -r pkg; do
+    FOREIGN["${pkg}"]=1
+  done <<<"${foreign_list}"
+fi
+aur_count=$(
+  set +u
+  echo "${#FOREIGN[@]}"
+)
 log_phase "Identified ${aur_count} AUR packages"
 phase_end
 
