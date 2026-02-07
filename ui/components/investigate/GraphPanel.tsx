@@ -1,5 +1,5 @@
 import ZoomControls from "@/components/graph/ZoomControls";
-import { PackageLink, PackageNode } from "@/types/package";
+import { DependencyDirection, PackageLink, PackageNode } from "@/types/package";
 
 interface GraphPanelProps {
   selectedPackage: PackageNode | null;
@@ -9,6 +9,8 @@ interface GraphPanelProps {
   currentZoom: number;
   minZoom: number;
   maxZoom: number;
+  direction: DependencyDirection;
+  onDirectionChange: (direction: DependencyDirection) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onZoomChange: (zoom: number) => void;
@@ -23,6 +25,8 @@ export default function GraphPanel({
   currentZoom,
   minZoom,
   maxZoom,
+  direction,
+  onDirectionChange,
   onZoomIn,
   onZoomOut,
   onZoomChange,
@@ -40,6 +44,41 @@ export default function GraphPanel({
               Showing {subGraphData.nodes.length} packages in the tree (
               {subGraphData.links.length} connections)
             </p>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => onDirectionChange("forward")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  direction === "forward"
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                }`}
+                title="Show dependencies (packages this depends on)"
+              >
+                Dependencies
+              </button>
+              <button
+                onClick={() => onDirectionChange("reverse")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  direction === "reverse"
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                }`}
+                title="Show reverse dependencies (packages that require this)"
+              >
+                Reverse
+              </button>
+              <button
+                onClick={() => onDirectionChange("both")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  direction === "both"
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                }`}
+                title="Show both dependencies and reverse dependencies"
+              >
+                All
+              </button>
+            </div>
           </div>
           <div className="flex-1 relative" ref={containerRef}>
             <svg

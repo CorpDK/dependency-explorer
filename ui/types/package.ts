@@ -52,6 +52,7 @@ export interface SelectedPackage {
 // Filter types
 export type InvestigateFilterType = "all" | "explicit" | "dependency";
 export type ColumnVariant = "explicit" | "dependency";
+export type DependencyDirection = "forward" | "reverse" | "both";
 
 // Package status
 export type PackageStatus = "explicit" | "dependency" | "orphaned";

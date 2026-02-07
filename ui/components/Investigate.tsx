@@ -13,10 +13,12 @@ import { updateDualSelection } from "@/lib/d3Utils";
 import { getLinkType } from "@/lib/packageTypeUtils";
 import {
   collectPackageTree,
+  collectReversePackageTree,
   fuzzyMatch,
   sortPackagesByName,
 } from "@/lib/utils";
 import {
+  DependencyDirection,
   InvestigateFilterType,
   PackageLink,
   PackageNode,
@@ -38,6 +40,7 @@ export default function Investigate({
     useState<PackageNode | null>(null);
   const [sidebarHidden, setSidebarHidden] = useState(true);
   const [currentZoom, setCurrentZoom] = useState(1);
+  const [direction, setDirection] = useState<DependencyDirection>("forward");
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomBehaviorRef = useRef<d3.ZoomBehavior<
@@ -69,25 +72,65 @@ export default function Investigate({
     if (!selectedPackage) return { nodes: [], links: [] };
 
     const treePackageIds = new Set<string>();
-    collectPackageTree(selectedPackage.id, nodes, treePackageIds);
+
+    // Collect packages based on direction
+    if (direction === "forward") {
+      collectPackageTree(selectedPackage.id, nodes, treePackageIds);
+    } else if (direction === "reverse") {
+      collectReversePackageTree(selectedPackage.id, nodes, treePackageIds);
+    } else {
+      // Both directions
+      collectPackageTree(selectedPackage.id, nodes, treePackageIds);
+      const treePackageIdsReverse = new Set<string>();
+      collectReversePackageTree(
+        selectedPackage.id,
+        nodes,
+        treePackageIdsReverse,
+      );
+      treePackageIdsReverse.forEach((id) => treePackageIds.add(id));
+    }
 
     const subNodes = nodes.filter((n) => treePackageIds.has(n.id));
     const subLinks: PackageLink[] = [];
+    const linkSet = new Set<string>();
 
+    // Build links based on direction
     subNodes.forEach((node) => {
-      node.depends_on.forEach((dep) => {
-        if (treePackageIds.has(dep)) {
-          subLinks.push({
-            source: node.id,
-            target: dep,
-            type: getLinkType(node),
-          });
-        }
-      });
+      if (direction === "forward" || direction === "both") {
+        node.depends_on.forEach((dep) => {
+          if (treePackageIds.has(dep)) {
+            const linkKey = `${node.id}->${dep}`;
+            if (!linkSet.has(linkKey)) {
+              linkSet.add(linkKey);
+              subLinks.push({
+                source: node.id,
+                target: dep,
+                type: getLinkType(node),
+              });
+            }
+          }
+        });
+      }
+
+      if (direction === "reverse" || direction === "both") {
+        node.required_by.forEach((parent) => {
+          if (treePackageIds.has(parent)) {
+            const linkKey = `${parent}->${node.id}`;
+            if (!linkSet.has(linkKey)) {
+              linkSet.add(linkKey);
+              subLinks.push({
+                source: parent,
+                target: node.id,
+                type: getLinkType(nodes.find((n) => n.id === parent) || node),
+              });
+            }
+          }
+        });
+      }
     });
 
     return { nodes: subNodes, links: subLinks };
-  }, [selectedPackage, nodes]);
+  }, [selectedPackage, nodes, direction]);
 
   // Handle node click
   const handleNodeClick = (node: PackageNode) => {
@@ -123,7 +166,7 @@ export default function Investigate({
       selectedGraphNode?.id ?? null,
       sidebarHidden,
     );
-  }, [selectedGraphNode, sidebarHidden, selectedPackage]);
+  }, [selectedGraphNode, sidebarHidden, selectedPackage, subGraphData.nodes]);
 
   const handleGraphPackageClick = (packageName: string) => {
     const node = subGraphData.nodes.find((n) => n.id === packageName);
@@ -185,6 +228,8 @@ export default function Investigate({
         currentZoom={currentZoom}
         minZoom={ZOOM_CONFIG.MIN}
         maxZoom={ZOOM_CONFIG.MAX}
+        direction={direction}
+        onDirectionChange={setDirection}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onZoomChange={handleZoomChange}

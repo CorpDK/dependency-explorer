@@ -41,6 +41,25 @@ export function collectPackageTree(
 }
 
 /**
+ * Collect full reverse dependency tree (package and all packages that require it)
+ */
+export function collectReversePackageTree(
+  packageId: string,
+  nodes: PackageNode[],
+  result: Set<string>,
+): void {
+  if (result.has(packageId)) return;
+  result.add(packageId);
+
+  const pkg = nodes.find((n) => n.id === packageId);
+  if (!pkg) return;
+
+  pkg.required_by.forEach((parent) => {
+    collectReversePackageTree(parent, nodes, result);
+  });
+}
+
+/**
  * Check if a package is orphaned (dependency with no parents)
  */
 export function isOrphaned(pkg: PackageNode): boolean {

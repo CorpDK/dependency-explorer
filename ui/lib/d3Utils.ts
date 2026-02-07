@@ -1,11 +1,12 @@
 import * as d3 from "d3";
+import { RefObject } from "react";
 
 /**
  * Update node selection state in the SVG
  * Clears all selections and applies "selected" class to the specified node
  */
 export function updateNodeSelection(
-  svgRef: React.RefObject<SVGSVGElement | null>,
+  svgRef: RefObject<SVGSVGElement | null>,
   selectedNodeId: string | null,
   sidebarHidden: boolean,
 ): void {
@@ -27,7 +28,7 @@ export function updateNodeSelection(
  * Used in Investigate view with separate classes for list and graph selection
  */
 export function updateDualSelection(
-  svgRef: React.RefObject<SVGSVGElement | null>,
+  svgRef: RefObject<SVGSVGElement | null>,
   listSelectedId: string | null,
   graphSelectedId: string | null,
   sidebarHidden: boolean,
@@ -63,7 +64,7 @@ export function updateDualSelection(
  * Clear all selection classes from nodes
  */
 export function clearNodeSelection(
-  svgRef: React.RefObject<SVGSVGElement>,
+  svgRef: RefObject<SVGSVGElement | null>,
 ): void {
   if (!svgRef.current) return;
 
@@ -78,7 +79,7 @@ export function clearNodeSelection(
  * Apply a custom class to specific nodes based on a filter
  */
 export function applyNodeClass(
-  svgRef: React.RefObject<SVGSVGElement>,
+  svgRef: RefObject<SVGSVGElement | null>,
   className: string,
   filter: (d: any) => boolean,
 ): void {
