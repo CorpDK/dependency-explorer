@@ -1,0 +1,24 @@
+# trunk-ignore-all(checkov/CKV_DOCKER_2)
+# trunk-ignore-all(checkov/CKV_DOCKER_3)
+# trunk-ignore-all(checkov/CKV_DOCKER_7)
+FROM archlinux:latest AS final-test
+
+RUN pacman -Syu --noconfirm \
+  zsh \
+  fastfetch \
+  dbus \
+  bash \
+  pacman-contrib \
+  jq \
+  bc \
+  pv \
+  inetutils \
+  i2c-tools && pacman -Rdd --noconfirm i2c-tools
+
+WORKDIR /test
+COPY ./collect-deps.sh /test/
+COPY ./collect-pactree.sh /test/
+COPY ./sample-generator/arch-entrypoint.sh /
+RUN chmod +x collect-deps.sh collect-pactree.sh && mkdir -p /data && chmod +x /arch-entrypoint.sh
+
+ENTRYPOINT ["/arch-entrypoint.sh"]

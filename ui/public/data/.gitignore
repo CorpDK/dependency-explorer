@@ -1,2 +1,2 @@
 *.json
-!sample-graph.json
+!*sample-system*.json
