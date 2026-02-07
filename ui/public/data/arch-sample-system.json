@@ -2,11 +2,16 @@
   "info": {
     "os": "arch",
     "hostname": "sample-system",
-    "timestamp": "2026-02-07T13:37:56Z+0000",
+    "timestamp": "2026-02-07T15:25:00Z+0000",
     "shell": "bash",
     "filter": {
       "type": "select",
-      "value": ["zsh", "fastfetch", "dbus", "bash"]
+      "value": [
+        "zsh",
+        "fastfetch",
+        "dbus",
+        "bash"
+      ]
     }
   },
   "nodes": {
@@ -16,7 +21,9 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://savannah.nongnu.org/projects/acl",
-      "depends_on": ["glibc"],
+      "depends_on": [
+        "glibc"
+      ],
       "required_by": [
         "coreutils",
         "gettext",
@@ -35,8 +42,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://savannah.nongnu.org/projects/attr",
-      "depends_on": ["glibc"],
-      "required_by": ["coreutils", "gettext", "shadow"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "coreutils",
+        "gettext",
+        "shadow"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -46,9 +59,23 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/linux-audit/audit-userspace",
-      "depends_on": ["bash", "glibc", "krb5", "libcap-ng"],
-      "required_by": ["dbus", "dbus-broker", "pam", "shadow", "systemd"],
-      "optional_depends_on": ["audispd-plugins*", "audispd-plugins-zos*"],
+      "depends_on": [
+        "bash",
+        "glibc",
+        "krb5",
+        "libcap-ng"
+      ],
+      "required_by": [
+        "dbus",
+        "dbus-broker",
+        "pam",
+        "shadow",
+        "systemd"
+      ],
+      "optional_depends_on": [
+        "audispd-plugins*",
+        "audispd-plugins-zos*"
+      ],
       "optional_required_by": []
     },
     "bash": {
@@ -57,7 +84,11 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/bash/bash.html",
-      "depends_on": ["glibc", "ncurses", "readline"],
+      "depends_on": [
+        "glibc",
+        "ncurses",
+        "readline"
+      ],
       "required_by": [
         "audit",
         "base",
@@ -86,8 +117,14 @@
         "systemd",
         "xz"
       ],
-      "optional_depends_on": ["bash-completion*"],
-      "optional_required_by": ["ncurses", "pcre2", "tzdata"]
+      "optional_depends_on": [
+        "bash-completion*"
+      ],
+      "optional_required_by": [
+        "ncurses",
+        "pcre2",
+        "tzdata"
+      ]
     },
     "brotli": {
       "explicit": false,
@@ -95,8 +132,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/google/brotli",
-      "depends_on": ["glibc"],
-      "required_by": ["curl", "gnutls"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "curl",
+        "gnutls"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -106,8 +148,18 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://sourceware.org/bzip2/",
-      "depends_on": ["bash", "glibc"],
-      "required_by": ["base", "file", "gnupg", "libarchive", "libelf", "pcre2"],
+      "depends_on": [
+        "bash",
+        "glibc"
+      ],
+      "required_by": [
+        "base",
+        "file",
+        "gnupg",
+        "libarchive",
+        "libelf",
+        "pcre2"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -117,10 +169,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://src.fedoraproject.org/rpms/ca-certificates",
-      "depends_on": ["ca-certificates-mozilla"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "ca-certificates-mozilla"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["openssl"]
+      "optional_required_by": [
+        "openssl"
+      ]
     },
     "ca-certificates-mozilla": {
       "explicit": false,
@@ -128,8 +186,12 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://firefox-source-docs.mozilla.org/security/nss/index.html",
-      "depends_on": ["ca-certificates-utils"],
-      "required_by": ["ca-certificates"],
+      "depends_on": [
+        "ca-certificates-utils"
+      ],
+      "required_by": [
+        "ca-certificates"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -139,10 +201,20 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://src.fedoraproject.org/rpms/ca-certificates",
-      "depends_on": ["bash", "coreutils", "findutils", "p11-kit"],
-      "required_by": ["ca-certificates-mozilla", "curl"],
+      "depends_on": [
+        "bash",
+        "coreutils",
+        "findutils",
+        "p11-kit"
+      ],
+      "required_by": [
+        "ca-certificates-mozilla",
+        "curl"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["openssl"]
+      "optional_required_by": [
+        "openssl"
+      ]
     },
     "coreutils": {
       "explicit": false,
@@ -150,7 +222,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/coreutils/",
-      "depends_on": ["acl", "attr", "glibc", "gmp", "libcap", "openssl"],
+      "depends_on": [
+        "acl",
+        "attr",
+        "glibc",
+        "gmp",
+        "libcap",
+        "openssl"
+      ],
       "required_by": [
         "base",
         "ca-certificates-utils",
@@ -183,9 +262,16 @@
         "zlib",
         "zstd"
       ],
-      "required_by": ["libelf", "pacman", "tpm2-tss"],
+      "required_by": [
+        "libelf",
+        "pacman",
+        "tpm2-tss"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["pciutils", "systemd"]
+      "optional_required_by": [
+        "pciutils",
+        "systemd"
+      ]
     },
     "dbus": {
       "explicit": false,
@@ -193,10 +279,22 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.freedesktop.org/wiki/Software/dbus/",
-      "depends_on": ["audit", "expat", "glibc", "libcap-ng", "systemd-libs"],
-      "required_by": ["dbus-broker-units", "libpcap", "systemd"],
+      "depends_on": [
+        "audit",
+        "expat",
+        "glibc",
+        "libcap-ng",
+        "systemd-libs"
+      ],
+      "required_by": [
+        "dbus-broker-units",
+        "libpcap",
+        "systemd"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["fastfetch"]
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "e2fsprogs": {
       "explicit": false,
@@ -204,9 +302,18 @@
       "repo": "core",
       "locally_built": false,
       "url": "http://e2fsprogs.sourceforge.net",
-      "depends_on": ["bash", "util-linux-libs"],
-      "required_by": ["krb5"],
-      "optional_depends_on": ["lvm2*", "smtp-forwarder*", "util-linux"],
+      "depends_on": [
+        "bash",
+        "util-linux-libs"
+      ],
+      "required_by": [
+        "krb5"
+      ],
+      "optional_depends_on": [
+        "lvm2*",
+        "smtp-forwarder*",
+        "util-linux"
+      ],
       "optional_required_by": []
     },
     "expat": {
@@ -215,8 +322,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://libexpat.github.io/",
-      "depends_on": ["glibc"],
-      "required_by": ["dbus", "dbus-broker"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "dbus",
+        "dbus-broker"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -226,7 +338,10 @@
       "repo": "extra",
       "locally_built": false,
       "url": "https://github.com/fastfetch-cli/fastfetch",
-      "depends_on": ["glibc", "yyjson"],
+      "depends_on": [
+        "glibc",
+        "yyjson"
+      ],
       "required_by": [],
       "optional_depends_on": [
         "chafa*",
@@ -256,8 +371,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://archlinux.org",
-      "depends_on": ["iana-etc"],
-      "required_by": ["base", "glibc"],
+      "depends_on": [
+        "iana-etc"
+      ],
+      "required_by": [
+        "base",
+        "glibc"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -267,10 +387,18 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/findutils/",
-      "depends_on": ["glibc"],
-      "required_by": ["base", "ca-certificates-utils", "libmakepkg-dropins"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "base",
+        "ca-certificates-utils",
+        "libmakepkg-dropins"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["pacman-contrib"]
+      "optional_required_by": [
+        "pacman-contrib"
+      ]
     },
     "gcc-libs": {
       "explicit": false,
@@ -278,7 +406,9 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://gcc.gnu.org",
-      "depends_on": ["glibc"],
+      "depends_on": [
+        "glibc"
+      ],
       "required_by": [
         "base",
         "db5.3",
@@ -303,8 +433,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/gdbm/gdbm.html",
-      "depends_on": ["bash", "glibc", "readline"],
-      "required_by": ["libsasl", "perl", "zsh"],
+      "depends_on": [
+        "bash",
+        "glibc",
+        "readline"
+      ],
+      "required_by": [
+        "libsasl",
+        "perl",
+        "zsh"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -324,9 +462,19 @@
         "util-linux-libs",
         "zlib"
       ],
-      "required_by": ["gpgme", "libsecret", "pinentry"],
-      "optional_depends_on": ["dconf*", "glib2-devel*", "gvfs*"],
-      "optional_required_by": ["fastfetch"]
+      "required_by": [
+        "gpgme",
+        "libsecret",
+        "pinentry"
+      ],
+      "optional_depends_on": [
+        "dconf*",
+        "glib2-devel*",
+        "gvfs*"
+      ],
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "glibc": {
       "explicit": false,
@@ -334,7 +482,11 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/libc",
-      "depends_on": ["filesystem", "linux-api-headers", "tzdata"],
+      "depends_on": [
+        "filesystem",
+        "linux-api-headers",
+        "tzdata"
+      ],
       "required_by": [
         "acl",
         "attr",
@@ -373,7 +525,6 @@
         "keyutils",
         "kmod",
         "krb5",
-        "leancrypto",
         "libarchive",
         "libassuan",
         "libbpf",
@@ -434,8 +585,13 @@
         "zlib",
         "zstd"
       ],
-      "optional_depends_on": ["gd*", "perl"],
-      "optional_required_by": ["tzdata"]
+      "optional_depends_on": [
+        "gd*",
+        "perl"
+      ],
+      "optional_required_by": [
+        "tzdata"
+      ]
     },
     "gmp": {
       "explicit": false,
@@ -443,8 +599,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://gmplib.org/",
-      "depends_on": ["gcc-libs", "glibc"],
-      "required_by": ["coreutils", "gnutls", "mpfr", "nettle"],
+      "depends_on": [
+        "gcc-libs",
+        "glibc"
+      ],
+      "required_by": [
+        "coreutils",
+        "gnutls",
+        "mpfr",
+        "nettle"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -468,9 +632,16 @@
         "zlib",
         "zstd"
       ],
-      "required_by": ["gnupg", "libngtcp2"],
-      "optional_depends_on": ["tpm2-tss"],
-      "optional_required_by": ["systemd"]
+      "required_by": [
+        "gnupg",
+        "libngtcp2"
+      ],
+      "optional_depends_on": [
+        "tpm2-tss"
+      ],
+      "optional_required_by": [
+        "systemd"
+      ]
     },
     "hwdata": {
       "explicit": false,
@@ -479,9 +650,14 @@
       "locally_built": false,
       "url": "https://github.com/vcrhonek/hwdata",
       "depends_on": [],
-      "required_by": ["pciutils", "systemd"],
+      "required_by": [
+        "pciutils",
+        "systemd"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["fastfetch"]
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "iana-etc": {
       "explicit": false,
@@ -490,7 +666,9 @@
       "locally_built": false,
       "url": "https://www.iana.org/protocols",
       "depends_on": [],
-      "required_by": ["filesystem"],
+      "required_by": [
+        "filesystem"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -500,8 +678,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/json-c/json-c/wiki",
-      "depends_on": ["glibc"],
-      "required_by": ["cryptsetup", "libelf", "tpm2-tss"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "cryptsetup",
+        "libelf",
+        "tpm2-tss"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -511,8 +695,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.kernel.org/",
-      "depends_on": ["bash", "glibc"],
-      "required_by": ["krb5"],
+      "depends_on": [
+        "bash",
+        "glibc"
+      ],
+      "required_by": [
+        "krb5"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -532,18 +721,11 @@
         "lmdb",
         "openssl"
       ],
-      "required_by": ["audit", "curl", "libtirpc"],
-      "optional_depends_on": [],
-      "optional_required_by": []
-    },
-    "leancrypto": {
-      "explicit": false,
-      "version": "1.6.0-1",
-      "repo": "core",
-      "locally_built": false,
-      "url": "https://leancrypto.org",
-      "depends_on": ["glibc"],
-      "required_by": ["gnutls"],
+      "required_by": [
+        "audit",
+        "curl",
+        "libtirpc"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -553,8 +735,17 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://sites.google.com/site/fullycapable/",
-      "depends_on": ["glibc", "pam"],
-      "required_by": ["coreutils", "inetutils", "iproute2", "iputils", "zsh"],
+      "depends_on": [
+        "glibc",
+        "pam"
+      ],
+      "required_by": [
+        "coreutils",
+        "inetutils",
+        "iproute2",
+        "iputils",
+        "zsh"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -564,8 +755,15 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://people.redhat.com/sgrubb/libcap-ng/",
-      "depends_on": ["glibc"],
-      "required_by": ["audit", "dbus", "dbus-broker", "util-linux"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "audit",
+        "dbus",
+        "dbus-broker",
+        "util-linux"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -575,10 +773,25 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://sourceware.org/elfutils/",
-      "depends_on": ["bzip2", "curl", "glibc", "json-c", "xz", "zlib", "zstd"],
-      "required_by": ["binutils", "iproute2", "libbpf", "systemd"],
+      "depends_on": [
+        "bzip2",
+        "curl",
+        "glibc",
+        "json-c",
+        "xz",
+        "zlib",
+        "zstd"
+      ],
+      "required_by": [
+        "binutils",
+        "iproute2",
+        "libbpf",
+        "systemd"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["fastfetch"]
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "libevent": {
       "explicit": false,
@@ -586,9 +799,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://libevent.org/",
-      "depends_on": ["glibc", "openssl"],
-      "required_by": ["libverto"],
-      "optional_depends_on": ["python*"],
+      "depends_on": [
+        "glibc",
+        "openssl"
+      ],
+      "required_by": [
+        "libverto"
+      ],
+      "optional_depends_on": [
+        "python*"
+      ],
       "optional_required_by": []
     },
     "libffi": {
@@ -597,8 +817,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://sourceware.org/libffi/",
-      "depends_on": ["glibc"],
-      "required_by": ["glib2", "libp11-kit"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "glib2",
+        "libp11-kit"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -608,8 +833,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnupg.org",
-      "depends_on": ["glibc", "libgpg-error"],
-      "required_by": ["gnupg", "libsecret", "systemd", "systemd-libs"],
+      "depends_on": [
+        "glibc",
+        "libgpg-error"
+      ],
+      "required_by": [
+        "gnupg",
+        "libsecret",
+        "systemd",
+        "systemd-libs"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -619,8 +852,17 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnupg.org",
-      "depends_on": ["bash", "glibc"],
-      "required_by": ["gnupg", "gpgme", "libassuan", "libgcrypt", "libksba"],
+      "depends_on": [
+        "bash",
+        "glibc"
+      ],
+      "required_by": [
+        "gnupg",
+        "gpgme",
+        "libassuan",
+        "libgcrypt",
+        "libksba"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -630,8 +872,16 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/libidn/#libidn2",
-      "depends_on": ["libunistring"],
-      "required_by": ["curl", "gnutls", "iputils", "libpsl", "systemd"],
+      "depends_on": [
+        "libunistring"
+      ],
+      "required_by": [
+        "curl",
+        "gnutls",
+        "iputils",
+        "libpsl",
+        "systemd"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -641,8 +891,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.openldap.org/",
-      "depends_on": ["libsasl"],
-      "required_by": ["gnupg", "krb5"],
+      "depends_on": [
+        "libsasl"
+      ],
+      "required_by": [
+        "gnupg",
+        "krb5"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -652,8 +907,12 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://nghttp2.org/",
-      "depends_on": ["glibc"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -663,8 +922,12 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/ngtcp2/nghttp3",
-      "depends_on": ["glibc"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -674,8 +937,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/ngtcp2/ngtcp2",
-      "depends_on": ["glibc", "gnutls", "openssl"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "glibc",
+        "gnutls",
+        "openssl"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -685,8 +954,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/thkukuk/libnsl",
-      "depends_on": ["glibc", "libtirpc"],
-      "required_by": ["pam"],
+      "depends_on": [
+        "glibc",
+        "libtirpc"
+      ],
+      "required_by": [
+        "pam"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -696,10 +970,19 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://p11-glue.freedesktop.org",
-      "depends_on": ["glibc", "libffi", "libtasn1"],
-      "required_by": ["gnutls", "p11-kit"],
+      "depends_on": [
+        "glibc",
+        "libffi",
+        "libtasn1"
+      ],
+      "required_by": [
+        "gnutls",
+        "p11-kit"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["systemd"]
+      "optional_required_by": [
+        "systemd"
+      ]
     },
     "libpsl": {
       "explicit": false,
@@ -707,8 +990,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/rockdaboot/libpsl",
-      "depends_on": ["libidn2", "libunistring"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "libidn2",
+        "libunistring"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -718,8 +1006,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.cyrusimap.org/sasl/",
-      "depends_on": ["gdbm", "glibc", "openssl"],
-      "required_by": ["libldap"],
+      "depends_on": [
+        "gdbm",
+        "glibc",
+        "openssl"
+      ],
+      "required_by": [
+        "libldap"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -729,8 +1023,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.libssh2.org/",
-      "depends_on": ["openssl", "zlib"],
-      "required_by": ["curl"],
+      "depends_on": [
+        "openssl",
+        "zlib"
+      ],
+      "required_by": [
+        "curl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -741,7 +1040,9 @@
       "locally_built": false,
       "url": "https://apps.gnome.org/Sysprof/",
       "depends_on": [],
-      "required_by": ["glib2"],
+      "required_by": [
+        "glib2"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -751,8 +1052,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/libtasn1/",
-      "depends_on": ["glibc"],
-      "required_by": ["gnutls", "libp11-kit", "p11-kit"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "gnutls",
+        "libp11-kit",
+        "p11-kit"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -762,8 +1069,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "http://git.linux-nfs.org/?p=steved/libtirpc.git;a=summary",
-      "depends_on": ["glibc", "krb5"],
-      "required_by": ["libnsl", "pam"],
+      "depends_on": [
+        "glibc",
+        "krb5"
+      ],
+      "required_by": [
+        "libnsl",
+        "pam"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -773,8 +1086,15 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.gnu.org/software/libunistring/",
-      "depends_on": ["glibc"],
-      "required_by": ["gettext", "gnutls", "libidn2", "libpsl"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "gettext",
+        "gnutls",
+        "libidn2",
+        "libpsl"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -784,8 +1104,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/latchset/libverto",
-      "depends_on": ["glibc", "libevent"],
-      "required_by": ["krb5"],
+      "depends_on": [
+        "glibc",
+        "libevent"
+      ],
+      "required_by": [
+        "krb5"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -795,7 +1120,9 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/besser82/libxcrypt/",
-      "depends_on": ["glibc"],
+      "depends_on": [
+        "glibc"
+      ],
       "required_by": [
         "inetutils",
         "pam",
@@ -814,7 +1141,10 @@
       "locally_built": false,
       "url": "https://www.gnu.org/software/libc",
       "depends_on": [],
-      "required_by": ["glibc", "libbpf"],
+      "required_by": [
+        "glibc",
+        "libbpf"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -824,8 +1154,12 @@
       "repo": "extra",
       "locally_built": false,
       "url": "https://symas.com/lmdb",
-      "depends_on": ["glibc"],
-      "required_by": ["krb5"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "krb5"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -835,8 +1169,15 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://lz4.github.io/lz4/",
-      "depends_on": ["glibc"],
-      "required_by": ["libarchive", "systemd", "systemd-libs", "zstd"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "libarchive",
+        "systemd",
+        "systemd-libs",
+        "zstd"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -846,7 +1187,10 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://invisible-island.net/ncurses/ncurses.html",
-      "depends_on": ["gcc-libs", "glibc"],
+      "depends_on": [
+        "gcc-libs",
+        "glibc"
+      ],
       "required_by": [
         "bash",
         "gettext",
@@ -857,7 +1201,9 @@
         "readline",
         "util-linux"
       ],
-      "optional_depends_on": ["bash"],
+      "optional_depends_on": [
+        "bash"
+      ],
       "optional_required_by": []
     },
     "nettle": {
@@ -866,8 +1212,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.lysator.liu.se/~nisse/nettle",
-      "depends_on": ["glibc", "gmp"],
-      "required_by": ["gnutls"],
+      "depends_on": [
+        "glibc",
+        "gmp"
+      ],
+      "required_by": [
+        "gnutls"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -877,7 +1228,9 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.openssl.org",
-      "depends_on": ["glibc"],
+      "depends_on": [
+        "glibc"
+      ],
       "required_by": [
         "coreutils",
         "cryptsetup",
@@ -893,7 +1246,10 @@
         "systemd",
         "tpm2-tss"
       ],
-      "optional_depends_on": ["ca-certificates", "perl"],
+      "optional_depends_on": [
+        "ca-certificates",
+        "perl"
+      ],
       "optional_required_by": []
     },
     "p11-kit": {
@@ -902,8 +1258,15 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://p11-glue.freedesktop.org",
-      "depends_on": ["coreutils", "glibc", "libp11-kit", "libtasn1"],
-      "required_by": ["ca-certificates-utils"],
+      "depends_on": [
+        "coreutils",
+        "glibc",
+        "libp11-kit",
+        "libtasn1"
+      ],
+      "required_by": [
+        "ca-certificates-utils"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -940,7 +1303,9 @@
       "locally_built": false,
       "url": "https://www.archlinux.org",
       "depends_on": [],
-      "required_by": ["pam"],
+      "required_by": [
+        "pam"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -950,9 +1315,21 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/PCRE2Project/pcre2",
-      "depends_on": ["bzip2", "glibc", "readline", "zlib"],
-      "required_by": ["glib2", "grep", "systemd", "zsh"],
-      "optional_depends_on": ["bash"],
+      "depends_on": [
+        "bzip2",
+        "glibc",
+        "readline",
+        "zlib"
+      ],
+      "required_by": [
+        "glib2",
+        "grep",
+        "systemd",
+        "zsh"
+      ],
+      "optional_depends_on": [
+        "bash"
+      ],
       "optional_required_by": []
     },
     "readline": {
@@ -961,7 +1338,10 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://tiswww.case.edu/php/chet/readline/rltop.html",
-      "depends_on": ["glibc", "ncurses"],
+      "depends_on": [
+        "glibc",
+        "ncurses"
+      ],
       "required_by": [
         "bash",
         "bc",
@@ -982,10 +1362,19 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.sqlite.org/",
-      "depends_on": ["glibc", "readline", "zlib"],
-      "required_by": ["gnupg", "util-linux-libs"],
+      "depends_on": [
+        "glibc",
+        "readline",
+        "zlib"
+      ],
+      "required_by": [
+        "gnupg",
+        "util-linux-libs"
+      ],
       "optional_depends_on": [],
-      "optional_required_by": ["fastfetch"]
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "systemd-libs": {
       "explicit": false,
@@ -993,7 +1382,14 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.github.com/systemd/systemd",
-      "depends_on": ["gcc-libs", "glibc", "libgcrypt", "lz4", "xz", "zstd"],
+      "depends_on": [
+        "gcc-libs",
+        "glibc",
+        "libgcrypt",
+        "lz4",
+        "xz",
+        "zstd"
+      ],
       "required_by": [
         "dbus",
         "dbus-broker",
@@ -1014,8 +1410,13 @@
       "locally_built": false,
       "url": "https://www.iana.org/time-zones",
       "depends_on": [],
-      "required_by": ["glibc"],
-      "optional_depends_on": ["bash", "glibc"],
+      "required_by": [
+        "glibc"
+      ],
+      "optional_depends_on": [
+        "bash",
+        "glibc"
+      ],
       "optional_required_by": []
     },
     "util-linux-libs": {
@@ -1024,9 +1425,19 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://github.com/util-linux/util-linux",
-      "depends_on": ["glibc", "sqlite"],
-      "required_by": ["cryptsetup", "e2fsprogs", "glib2", "util-linux"],
-      "optional_depends_on": ["python*"],
+      "depends_on": [
+        "glibc",
+        "sqlite"
+      ],
+      "required_by": [
+        "cryptsetup",
+        "e2fsprogs",
+        "glib2",
+        "util-linux"
+      ],
+      "optional_depends_on": [
+        "python*"
+      ],
       "optional_required_by": []
     },
     "xz": {
@@ -1035,7 +1446,10 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://tukaani.org/xz/",
-      "depends_on": ["bash", "glibc"],
+      "depends_on": [
+        "bash",
+        "glibc"
+      ],
       "required_by": [
         "base",
         "file",
@@ -1055,8 +1469,12 @@
       "repo": "extra",
       "locally_built": false,
       "url": "https://ibireme.github.io/yyjson",
-      "depends_on": ["glibc"],
-      "required_by": ["fastfetch"],
+      "depends_on": [
+        "glibc"
+      ],
+      "required_by": [
+        "fastfetch"
+      ],
       "optional_depends_on": [],
       "optional_required_by": []
     },
@@ -1066,7 +1484,9 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://www.zlib.net/",
-      "depends_on": ["glibc"],
+      "depends_on": [
+        "glibc"
+      ],
       "required_by": [
         "binutils",
         "curl",
@@ -1086,7 +1506,9 @@
         "zstd"
       ],
       "optional_depends_on": [],
-      "optional_required_by": ["fastfetch"]
+      "optional_required_by": [
+        "fastfetch"
+      ]
     },
     "zsh": {
       "explicit": true,
@@ -1094,7 +1516,11 @@
       "repo": "extra",
       "locally_built": false,
       "url": "https://www.zsh.org/",
-      "depends_on": ["gdbm", "libcap", "pcre2"],
+      "depends_on": [
+        "gdbm",
+        "libcap",
+        "pcre2"
+      ],
       "required_by": [],
       "optional_depends_on": [],
       "optional_required_by": []
@@ -1105,7 +1531,13 @@
       "repo": "core",
       "locally_built": false,
       "url": "https://facebook.github.io/zstd/",
-      "depends_on": ["gcc-libs", "glibc", "lz4", "xz", "zlib"],
+      "depends_on": [
+        "gcc-libs",
+        "glibc",
+        "lz4",
+        "xz",
+        "zlib"
+      ],
       "required_by": [
         "binutils",
         "curl",

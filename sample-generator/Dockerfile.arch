@@ -13,7 +13,7 @@ RUN pacman -Syu --noconfirm \
   bc \
   pv \
   inetutils \
-  i2c-tools && pacman -Rdd --noconfirm i2c-tools
+  i2c-tools && pacman -Rdd --noconfirm leancrypto
 
 WORKDIR /test
 COPY ./collect-deps.sh /test/
