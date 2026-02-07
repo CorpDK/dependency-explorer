@@ -20,3 +20,4 @@ dist
 
 # Public data files
 public/data/*.json
+!public/data/sample-graph.json
