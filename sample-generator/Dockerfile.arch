@@ -1,6 +1,7 @@
 # trunk-ignore-all(checkov/CKV_DOCKER_2)
 # trunk-ignore-all(checkov/CKV_DOCKER_3)
 # trunk-ignore-all(checkov/CKV_DOCKER_7)
+# trunk-ignore(hadolint/DL3007)
 FROM archlinux:latest AS final-test
 
 RUN pacman -Syu --noconfirm \
