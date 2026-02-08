@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/CorpDK/dependency-explorer/schemas/dependency-graph.json",
+  "title": "Package Dependency Graph Schema",
+  "description": "Schema for Arch-based package dependency explorer JSON data files",
+  "type": "object",
+  "required": ["info", "nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "info": {
+      "type": "object",
+      "description": "System metadata and collection information",
+      "required": ["os", "hostname", "timestamp", "shell", "filter"],
+      "additionalProperties": false,
+      "properties": {
+        "os": {
+          "type": "string",
+          "description": "Distribution ID from /etc/os-release (e.g., arch, manjaro, endeavouros)",
+          "minLength": 1
+        },
+        "hostname": {
+          "type": "string",
+          "description": "Short hostname from hostname -s command",
+          "minLength": 1
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Collection timestamp in ISO 8601 format (e.g., 2026-02-01T14:30:22Z+0000)",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z[+-]\\d{4}$"
+        },
+        "shell": {
+          "type": "string",
+          "description": "Shell used for collection (e.g., bash, zsh)",
+          "minLength": 1
+        },
+        "filter": {
+          "type": "object",
+          "description": "Filter information applied during collection",
+          "required": ["type", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["none", "first", "last", "select"],
+              "description": "Type of filter applied: none (all packages), first (first N explicit), last (last N explicit), select (specific packages)"
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "null",
+                  "description": "No filter value (when type is 'none')"
+                },
+                {
+                  "type": "number",
+                  "description": "Number of packages (when type is 'first' or 'last')"
+                },
+                {
+                  "type": "array",
+                  "description": "Package names (when type is 'select')",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "object",
+      "description": "Map of package names to package information",
+      "additionalProperties": {
+        "$ref": "#/definitions/packageNode"
+      }
+    }
+  },
+  "definitions": {
+    "packageNode": {
+      "type": "object",
+      "description": "Information about a single package",
+      "required": [
+        "explicit",
+        "version",
+        "repo",
+        "locally_built",
+        "url",
+        "depends_on",
+        "required_by",
+        "optional_depends_on",
+        "optional_required_by"
+      ],
+      "properties": {
+        "explicit": {
+          "type": "boolean",
+          "description": "True if package was explicitly installed, false if dependency"
+        },
+        "version": {
+          "type": "string",
+          "description": "Package version string from pacman (format: epoch:version-release or version-release)",
+          "minLength": 1
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository name (e.g., core, extra, community, multilib, aur, unknown)",
+          "minLength": 1
+        },
+        "locally_built": {
+          "type": "boolean",
+          "description": "True if package is a locally rebuilt official package (foreign package that exists in official repos)"
+        },
+        "url": {
+          "description": "Package homepage URL (empty string if not available)",
+          "oneOf": [
+            {
+              "type": "string",
+              "const": "",
+              "description": "Empty string when URL is not available"
+            },
+            {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Valid HTTP(S) URL"
+            }
+          ]
+        },
+        "depends_on": {
+          "type": "array",
+          "description": "Direct dependencies only (depth 1, not transitive)",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "required_by": {
+          "type": "array",
+          "description": "Direct reverse dependencies only (depth 1)",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "optional_depends_on": {
+          "type": "array",
+          "description": "Optional dependencies (features that can be enabled)",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "optional_required_by": {
+          "type": "array",
+          "description": "Packages that optionally depend on this package",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
