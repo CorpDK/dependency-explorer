@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/CorpDK/dependency-explorer/schemas/dependency-graph.json",
+  "$id": "https://raw.githubusercontent.com/CorpDK/dependency-explorer/refs/heads/main/schemas/dependency-graph.json",
   "title": "Package Dependency Graph Schema",
   "description": "Schema for Arch-based package dependency explorer JSON data files",
   "type": "object",
