@@ -8,13 +8,19 @@ import { useMemo } from "react";
 export function usePackageStatus(pkg: PackageNode) {
   return useMemo(() => {
     const orphaned = isOrphaned(pkg);
+    const broken = pkg.broken === true;
 
     let status: PackageStatus;
     let color: string;
     let title: string;
     let text: string;
 
-    if (pkg.explicit) {
+    if (broken) {
+      status = "dependency";
+      color = "bg-red-500";
+      title = "Broken dependency (missing)";
+      text = "Broken dependency (missing)";
+    } else if (pkg.explicit) {
       status = "explicit";
       color = "bg-green-500";
       title = "Explicitly installed";
@@ -37,6 +43,7 @@ export function usePackageStatus(pkg: PackageNode) {
       title,
       text,
       isOrphaned: orphaned,
+      isBroken: broken,
     };
   }, [pkg]);
 }

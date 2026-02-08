@@ -74,17 +74,63 @@ export function sortPackagesByName(packages: PackageNode[]): PackageNode[] {
 }
 
 /**
- * Count explicit and dependency packages
+ * Process nodes to detect broken dependencies and clean up "not of concern" reverse dependencies
+ * Returns enhanced node list including synthetic broken dependency nodes
+ */
+export function processBrokenDependencies(nodes: PackageNode[]): PackageNode[] {
+  if (nodes.length === 0) return [];
+
+  const nodeMap = new Map<string, PackageNode>();
+  const brokenDeps = new Set<string>();
+
+  // Build map of existing nodes
+  nodes.forEach((node) => {
+    nodeMap.set(node.id, node);
+  });
+
+  // Clean up nodes: filter "not of concern" dependencies from required_by
+  const cleanedNodes = nodes.map((node) => ({
+    ...node,
+    required_by: node.required_by.filter((dep) => nodeMap.has(dep)),
+  }));
+
+  // Detect broken dependencies
+  cleanedNodes.forEach((node) => {
+    node.depends_on.forEach((dep) => {
+      if (!nodeMap.has(dep)) {
+        brokenDeps.add(dep);
+      }
+    });
+  });
+
+  // Create synthetic nodes for broken dependencies (red nodes)
+  const syntheticNodes: PackageNode[] = Array.from(brokenDeps).map((dep) => ({
+    id: dep,
+    explicit: false,
+    version: "missing",
+    depends_on: [],
+    required_by: [],
+    broken: true,
+  }));
+
+  return [...cleanedNodes, ...syntheticNodes];
+}
+
+/**
+ * Count explicit, dependency, and broken packages
  */
 export function countPackages(nodes: PackageNode[]): {
   explicit: number;
   dependency: number;
+  broken: number;
   total: number;
 } {
-  const explicit = nodes.filter((n) => n.explicit).length;
+  const explicit = nodes.filter((n) => n.explicit && !n.broken).length;
+  const broken = nodes.filter((n) => n.broken).length;
   return {
     explicit,
-    dependency: nodes.length - explicit,
+    dependency: nodes.length - explicit - broken,
+    broken,
     total: nodes.length,
   };
 }

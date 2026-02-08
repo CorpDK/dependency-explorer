@@ -19,5 +19,6 @@ export {
   collectReversePackageTree,
   countPackages,
   isOrphaned,
+  processBrokenDependencies,
   sortPackagesByName,
 } from "./packages";

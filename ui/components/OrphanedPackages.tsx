@@ -104,6 +104,7 @@ export default function OrphanedPackages({
                         variant="orphaned"
                         isHighlighted={selectedPackage?.id === pkg.id}
                         onClick={() => handlePackageClick(pkg)}
+                        showBrokenIndicator={true}
                         extraInfo={
                           <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
                             {pkg.depends_on.length}{" "}

@@ -10,6 +10,7 @@ interface PackageItemProps {
   isHighlighted?: boolean;
   onClick?: () => void;
   showOrphanedIndicator?: boolean;
+  showBrokenIndicator?: boolean;
   extraInfo?: React.ReactNode;
 }
 
@@ -37,10 +38,12 @@ const PackageItem = memo(function PackageItem({
   isHighlighted = false,
   onClick,
   showOrphanedIndicator = false,
+  showBrokenIndicator = false,
   extraInfo,
 }: Readonly<PackageItemProps>) {
   const styles = variantStyles[variant];
   const isOrphaned = checkIsOrphaned(pkg);
+  const isBroken = pkg.broken === true;
 
   return (
     <button
@@ -55,8 +58,14 @@ const PackageItem = memo(function PackageItem({
           title="Orphaned package"
         ></span>
       )}
+      {showBrokenIndicator && isBroken && (
+        <span
+          className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500"
+          title="Broken dependency"
+        ></span>
+      )}
       <div
-        className={`font-mono text-sm text-zinc-900 dark:text-zinc-100 ${showOrphanedIndicator && isOrphaned ? "pr-4" : ""}`}
+        className={`font-mono text-sm text-zinc-900 dark:text-zinc-100 ${(showOrphanedIndicator && isOrphaned) || (showBrokenIndicator && isBroken) ? "pr-4" : ""}`}
       >
         {pkg.id}
       </div>

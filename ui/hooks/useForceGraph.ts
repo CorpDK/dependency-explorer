@@ -103,9 +103,10 @@ export function useForceGraph({
       .selectAll("line")
       .data(links)
       .join("line")
-      .attr("class", (d) =>
-        d.type === "explicit" ? "link link-explicit" : "link link-dependency",
-      );
+      .attr("class", (d) => {
+        return `link link-${d.type}`;
+      })
+      .attr("stroke-width", (d) => (d.type === "broken" ? 1.5 : 1));
 
     // Nodes
     const node = g
@@ -114,7 +115,10 @@ export function useForceGraph({
       .selectAll<SVGCircleElement, PackageNode>("circle")
       .data(nodes)
       .join("circle")
-      .attr("class", (d) => (d.explicit ? "node explicit" : "node dependency"))
+      .attr("class", (d) => {
+        if (d.broken) return "node broken";
+        return d.explicit ? "node explicit" : "node dependency";
+      })
       .attr("r", (d) =>
         highlightedNodeId && d.id === highlightedNodeId
           ? nodeRadius * 1.67

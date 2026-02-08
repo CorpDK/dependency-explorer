@@ -80,6 +80,7 @@ export default function PackageListPanel({
                   variant={pkg.explicit ? "explicit" : "dependency"}
                   isHighlighted={selectedPackage?.id === pkg.id}
                   onClick={() => onPackageSelect(pkg)}
+                  showBrokenIndicator={true}
                   extraInfo={
                     <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
                       {pkg.depends_on.length} deps, {pkg.required_by.length}{" "}

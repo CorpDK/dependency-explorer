@@ -10,7 +10,12 @@ import { useZoomHandlers } from "@/hooks/useZoomHandlers";
 import { ZOOM_CONFIG } from "@/lib/constants";
 import { updateNodeSelection } from "@/lib/d3Utils";
 import { getLinkType } from "@/lib/packageTypeUtils";
-import { PackageLink, PackageNode, ViewProps } from "@/types/package";
+import {
+  PackageLink,
+  PackageLinkType,
+  PackageNode,
+  ViewProps,
+} from "@/types/package";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function DependencyGraph({
@@ -43,19 +48,23 @@ export default function DependencyGraph({
     }
 
     const newLinks: PackageLink[] = [];
-    const nodeMap = new Map<string, number>();
+    const nodeMap = new Map<string, PackageNode>();
 
-    nodes.forEach((node, index) => {
-      nodeMap.set(node.id, index);
+    // Build map of existing nodes (including broken ones from parent)
+    nodes.forEach((node) => {
+      nodeMap.set(node.id, node);
     });
 
+    // Create links based on dependencies
     nodes.forEach((node) => {
       node.depends_on.forEach((dep) => {
-        if (nodeMap.has(dep)) {
+        const targetNode = nodeMap.get(dep);
+        if (targetNode) {
+          const linkType: PackageLinkType = getLinkType(node, targetNode);
           newLinks.push({
             source: node.id,
             target: dep,
-            type: getLinkType(node),
+            type: linkType,
           });
         }
       });

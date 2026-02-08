@@ -41,6 +41,11 @@ body {
   fill: #2196f3;
 }
 
+.node.broken {
+  fill: #f44336;
+  cursor: pointer;
+}
+
 .node:hover {
   stroke: #333;
   stroke-width: 3px;
@@ -78,6 +83,12 @@ body {
   stroke-opacity: 0.4;
 }
 
+.link.link-broken {
+  stroke: #f44336 !important;
+  stroke-opacity: 0.6;
+  stroke-width: 1.5px;
+}
+
 @media (prefers-color-scheme: dark) {
   .node {
     stroke: #3f3f46;
@@ -112,6 +123,16 @@ body {
   .link.link-dependency {
     stroke: #42a5f5 !important;
     stroke-opacity: 0.4;
+  }
+
+  .node.broken {
+    fill: #ef5350;
+  }
+
+  .link.link-broken {
+    stroke: #ef5350 !important;
+    stroke-opacity: 0.6;
+    stroke-width: 1.5px;
   }
 }
 

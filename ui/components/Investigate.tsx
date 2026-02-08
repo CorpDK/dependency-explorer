@@ -105,7 +105,7 @@ export default function Investigate({
               subLinks.push({
                 source: node.id,
                 target: dep,
-                type: getLinkType(node),
+                type: getLinkType(nodes.find((n) => n.id === dep)!, node),
               });
             }
           }
@@ -121,7 +121,7 @@ export default function Investigate({
               subLinks.push({
                 source: parent,
                 target: node.id,
-                type: getLinkType(nodes.find((n) => n.id === parent) || node),
+                type: getLinkType(nodes.find((n) => n.id === parent)!, node),
               });
             }
           }

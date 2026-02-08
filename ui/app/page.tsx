@@ -8,7 +8,11 @@ import FileSelector from "@/components/header/FileSelector";
 import Legend from "@/components/header/Legend";
 import SystemInfo from "@/components/header/SystemInfo";
 import ViewTabs from "@/components/header/ViewTabs";
-import { countPackages, transformData } from "@/lib/utils";
+import {
+  countPackages,
+  processBrokenDependencies,
+  transformData,
+} from "@/lib/utils";
 import {
   GraphInfo,
   PackageNode,
@@ -21,6 +25,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [files, setFiles] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
+  const [rawNodes, setRawNodes] = useState<PackageNode[]>([]);
   const [nodes, setNodes] = useState<PackageNode[]>([]);
   const [graphInfo, setGraphInfo] = useState<GraphInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -44,6 +49,7 @@ export default function Home() {
   // Load data when selected file changes
   useEffect(() => {
     if (!selectedFile) {
+      setRawNodes([]);
       setNodes([]);
       setGraphInfo(null);
       return;
@@ -59,7 +65,7 @@ export default function Home() {
         }
         const rawData: RawGraphData = await response.json();
         const nodeList = transformData(rawData);
-        setNodes(nodeList);
+        setRawNodes(nodeList);
         setGraphInfo(rawData.info || null);
         setLoading(false);
       } catch (err) {
@@ -70,7 +76,13 @@ export default function Home() {
     loadData();
   }, [selectedFile]);
 
-  const { explicit, dependency, total } = countPackages(nodes);
+  // Process nodes to detect broken dependencies
+  useEffect(() => {
+    const processedNodes = processBrokenDependencies(rawNodes);
+    setNodes(processedNodes);
+  }, [rawNodes]);
+
+  const { explicit, dependency, broken, total } = countPackages(nodes);
 
   return (
     <div className="flex flex-col h-screen">
@@ -89,6 +101,7 @@ export default function Home() {
           <Legend
             explicitCount={explicit}
             dependencyCount={dependency}
+            brokenCount={broken}
             totalCount={total}
           />
         </div>

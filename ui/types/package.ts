@@ -6,13 +6,16 @@ export interface PackageNode extends d3.SimulationNodeDatum {
   version: string;
   depends_on: string[];
   required_by: string[];
+  broken?: boolean; // True if this is a missing dependency
 }
 
 export interface PackageLink extends d3.SimulationLinkDatum<PackageNode> {
   source: string | PackageNode;
   target: string | PackageNode;
-  type: "explicit" | "dependency";
+  type: PackageLinkType;
 }
+
+export type PackageLinkType = "explicit" | "dependency" | "broken";
 
 export interface GraphInfo {
   os: string;

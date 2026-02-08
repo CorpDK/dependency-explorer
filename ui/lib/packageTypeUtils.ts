@@ -1,11 +1,19 @@
-import { PackageNode, PackageStatus } from "@/types/package";
+import { PackageLinkType, PackageNode, PackageStatus } from "@/types/package";
 import { isOrphaned } from "./packages";
 
 /**
  * Get the link type for a package node
  */
-export function getLinkType(node: PackageNode): "explicit" | "dependency" {
-  return node.explicit ? "explicit" : "dependency";
+export function getLinkType(
+  srcNode: PackageNode,
+  destNode: PackageNode,
+): PackageLinkType {
+  if (srcNode.broken || destNode.broken) {
+    return "broken";
+  } else if (srcNode.explicit === true || destNode.explicit === true) {
+    return "explicit";
+  }
+  return "dependency";
 }
 
 /**

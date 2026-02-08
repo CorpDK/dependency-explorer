@@ -55,6 +55,7 @@ export default function PackageColumn({
                 isHighlighted={isHighlighted(pkg)}
                 onClick={() => onPackageClick(pkg)}
                 showOrphanedIndicator={variant === "dependency"}
+                showBrokenIndicator={true}
                 extraInfo={renderExtraInfo?.(pkg)}
               />
             </li>

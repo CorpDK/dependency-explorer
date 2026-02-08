@@ -29,10 +29,18 @@ export default function PackageDetails({
         </strong>
         <span
           className={`inline-block px-3 py-1.5 rounded text-sm font-medium ${
-            node.explicit ? "bg-green-500 text-white" : "bg-blue-500 text-white"
+            node.broken
+              ? "bg-red-500 text-white"
+              : node.explicit
+                ? "bg-green-500 text-white"
+                : "bg-blue-500 text-white"
           }`}
         >
-          {node.explicit ? "Explicitly Installed" : "Dependency"}
+          {node.broken
+            ? "Broken Dependency"
+            : node.explicit
+              ? "Explicitly Installed"
+              : "Dependency"}
         </span>
       </div>
       <DependencyList
