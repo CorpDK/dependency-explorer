@@ -42,7 +42,6 @@ The application uses Next.js for server-side API routes and client-side renderin
 - OS: Manjaro Linux
 - Package manager: pacman
 - Tools available:
-
   - pacman
   - pactree
   - bash
@@ -54,7 +53,6 @@ The application uses Next.js for server-side API routes and client-side renderin
 - Identify explicitly installed packages
 - Identify dependency-installed packages
 - Extract:
-
   - Direct dependencies
   - Direct reverse dependencies
 
@@ -73,9 +71,9 @@ The script MUST:
 - Generate timestamped JSON files at `ui/public/data/graph-YYYY-MM-DD-HHMMSS.json`
 - Include **every installed package**
 - Correctly mark packages as:
-
   - explicitly installed
   - dependency-installed
+
 - Include package version information
 - Create output directory if it doesn't exist
 
@@ -159,20 +157,17 @@ The UI follows Next.js App Router conventions:
 ### Core Features (MANDATORY)
 
 1. **Graph Visualization**
-
    - Force-directed graph
    - Zoom and pan
    - Clickable nodes
    - Smooth interaction for large graphs
 
 2. **Node Classification**
-
    - Explicit packages: visually distinct (e.g. green)
    - Dependency packages: visually distinct (e.g. blue)
 
 3. **Sidebar / Inspector Panel**
    On node click, show:
-
    - Package name
    - Package version
    - Explicit or dependency-installed
@@ -182,7 +177,6 @@ The UI follows Next.js App Router conventions:
    - List of reverse dependencies (clickable for navigation)
 
 4. **Graph Browsing**
-
    - Navigate the entire dependency graph
    - Drag nodes
    - Explore relationships interactively
@@ -190,7 +184,6 @@ The UI follows Next.js App Router conventions:
    - Click package names in dependency lists to navigate between packages
 
 5. **Multiple Data Files**
-
    - File selector dropdown to switch between different JSON data files
    - Data files stored in `ui/public/data/` directory
    - Files discovered dynamically via `/api/files` API endpoint

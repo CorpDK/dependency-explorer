@@ -5,17 +5,20 @@ This document outlines the coding standards and best practices for the Package D
 ## Core Principles
 
 ### 1. Pure Components
+
 - **Single Responsibility**: Each component should have one clear purpose
 - **No Side Effects**: Pure components should not modify external state during rendering
 - **Predictable**: Same props should always produce the same output
 - **Testable**: Components should be easy to test in isolation
 
 ### 2. Code Reusability
+
 - Extract duplicated code into shared utilities or components
 - Create generic components that can be reused across different views
 - Use composition over inheritance
 
 ### 3. Type Safety
+
 - Always define TypeScript interfaces for props
 - Use strict typing - avoid `any` type
 - Define shared types in centralized location (`types/` directory)
@@ -139,6 +142,7 @@ export default function MyComponent({ data, onSelect }: MyComponentProps) {
 ### Props Guidelines
 
 1. **Interface naming**: `ComponentNameProps`
+
    ```typescript
    interface SearchInputProps {
      value: string;
@@ -147,22 +151,24 @@ export default function MyComponent({ data, onSelect }: MyComponentProps) {
    ```
 
 2. **Destructure props** in function signature
+
    ```typescript
    // Good
-   function SearchInput({ value, onChange }: SearchInputProps) { }
+   function SearchInput({ value, onChange }: SearchInputProps) {}
 
    // Avoid
-   function SearchInput(props: SearchInputProps) { }
+   function SearchInput(props: SearchInputProps) {}
    ```
 
 3. **Optional props**: Use `?` and provide defaults
+
    ```typescript
    interface ComponentProps {
      required: string;
      optional?: string;
    }
 
-   function Component({ required, optional = "default" }: ComponentProps) { }
+   function Component({ required, optional = "default" }: ComponentProps) {}
    ```
 
 4. **Callback props**: Prefix with `on`
@@ -177,7 +183,9 @@ export default function MyComponent({ data, onSelect }: MyComponentProps) {
 ## Anti-Patterns to Avoid
 
 ### 1. Large Components
+
 ❌ **Bad**: Single component with 300+ lines
+
 ```typescript
 export default function PackageView() {
   // 300 lines of logic and rendering...
@@ -185,6 +193,7 @@ export default function PackageView() {
 ```
 
 ✅ **Good**: Split into focused subcomponents
+
 ```typescript
 export default function PackageView() {
   return (
@@ -198,45 +207,65 @@ export default function PackageView() {
 ```
 
 ### 2. Duplicated Code
+
 ❌ **Bad**: Copying logic across components
+
 ```typescript
 // In ComponentA
-function fuzzyMatch(query: string, target: string) { /* ... */ }
+function fuzzyMatch(query: string, target: string) {
+  /* ... */
+}
 
 // In ComponentB
-function fuzzyMatch(query: string, target: string) { /* ... */ }
+function fuzzyMatch(query: string, target: string) {
+  /* ... */
+}
 ```
 
 ✅ **Good**: Extract to shared utility
+
 ```typescript
 // lib/utils.ts
-export function fuzzyMatch(query: string, target: string) { /* ... */ }
+export function fuzzyMatch(query: string, target: string) {
+  /* ... */
+}
 
 // In both components
 import { fuzzyMatch } from "@/lib/utils";
 ```
 
 ### 3. Duplicated Type Definitions
+
 ❌ **Bad**: Defining same interface in multiple files
+
 ```typescript
 // fileA.tsx
-interface PackageNode { /* ... */ }
+interface PackageNode {
+  /* ... */
+}
 
 // fileB.tsx
-interface PackageNode { /* ... */ }
+interface PackageNode {
+  /* ... */
+}
 ```
 
 ✅ **Good**: Centralize in types directory
+
 ```typescript
 // types/package.ts
-export interface PackageNode { /* ... */ }
+export interface PackageNode {
+  /* ... */
+}
 
 // Import in both files
 import { PackageNode } from "@/types/package";
 ```
 
 ### 4. Mixed Concerns
+
 ❌ **Bad**: Business logic in UI components
+
 ```typescript
 function Button({ packages }: { packages: Package[] }) {
   const filtered = packages.filter(p => !p.explicit);
@@ -247,6 +276,7 @@ function Button({ packages }: { packages: Package[] }) {
 ```
 
 ✅ **Good**: Separate concerns
+
 ```typescript
 // Parent component handles logic
 function ParentView() {
@@ -266,7 +296,9 @@ function CountButton({ count }: { count: number }) {
 ```
 
 ### 5. Prop Drilling
+
 ❌ **Bad**: Passing props through multiple levels
+
 ```typescript
 <GrandParent data={data}>
   <Parent data={data}>
@@ -278,6 +310,7 @@ function CountButton({ count }: { count: number }) {
 ```
 
 ✅ **Good**: Use composition or context for deeply nested data
+
 ```typescript
 // Option 1: Flatten component hierarchy
 <GrandParent>
@@ -444,6 +477,7 @@ Follow conventional commits format:
 ```
 
 Types:
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `refactor:` - Code restructuring without changing behavior
@@ -453,6 +487,7 @@ Types:
 - `chore:` - Maintenance tasks
 
 Example:
+
 ```
 refactor: Extract header components into reusable modules
 

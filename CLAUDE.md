@@ -11,6 +11,7 @@ This is an **Arch-based Package Dependency Explorer** - a Next.js-based web appl
 ## Coding Standards
 
 **All code changes MUST follow the guidelines in [CODING_GUIDELINES.md](CODING_GUIDELINES.md)**. This document defines:
+
 - Component structure and organization principles
 - Code reusability patterns
 - Type safety requirements
@@ -18,6 +19,7 @@ This is an **Arch-based Package Dependency Explorer** - a Next.js-based web appl
 - Performance best practices
 
 Key principles:
+
 - **Pure Components**: Single responsibility, no side effects, predictable outputs
 - **No Duplication**: Extract shared code to utilities or reusable components
 - **Type Safety**: Centralized type definitions in `types/` directory
@@ -159,6 +161,7 @@ The generated JSON files MUST follow this exact structure:
 The application follows Next.js App Router conventions:
 
 #### API Routes
+
 - **app/api/files/route.ts**: Server-side endpoint that reads `public/data/` directory and returns list of JSON files sorted by modification time
 
 #### React Components
@@ -173,6 +176,7 @@ The application uses a modular component architecture (see [CODING_GUIDELINES.md
 - **Types**: Centralized type definitions in `types/package.ts`
 
 #### Styling
+
 - **app/globals.css**: Global CSS with all styling for graph, nodes, sidebar, etc.
 
 Must implement:
@@ -220,16 +224,19 @@ cd ui && pnpm start  # Production server on port 3000
 ### Key Implementation Details
 
 **Visual Feedback:**
+
 - Selected nodes show an orange border (4px, #FF9800)
 - Closing the sidebar clears the selected node indicator
 - Hover states provide immediate feedback
 
 **Navigation:**
+
 - Clicking package names in dependency/required-by lists navigates to that package
 - Updates sidebar content and selected node indicator
 - Enables quick exploration of dependency chains
 
 **Dynamic File Discovery:**
+
 - `/api/files` endpoint reads `public/data/` directory at runtime
 - Files sorted by modification time (newest first)
 - No manual manifest file needed
@@ -260,24 +267,30 @@ cd ui && pnpm start  # Production server on port 3000
 ## Workflow Optimization & Token Efficiency
 
 ### Response Style
+
 - **Be concise**: Provide direct, actionable responses without excessive explanations
 - **Summarize over explain**: Focus on key changes rather than detailed descriptions
 - **Skip pleasantries**: Get straight to the task at hand
 
 ### File Context
+
 Files that are commonly modified together:
+
 - `ui/app/layout.tsx` + `ui/app/globals.css` (styling/theme changes)
 - `ui/components/DependencyGraph.tsx` + `ui/app/globals.css` (UI/visualization changes)
 - `ui/package.json` + `ui/pnpm-lock.yaml` + `ui/tsconfig.json` (dependency/config updates)
 
 ### Common Operations
+
 When the user says:
+
 - **"commit"** → Run git workflow: status, diff, log, then commit with proper message
 - **"upgrade"** → Compare reference project, update dependencies, config files, then test
 - **"fix [issue]"** → Identify root cause, apply fix, verify with minimal explanation
 - **"add [feature]"** → Implement feature following existing patterns without asking for approval unless truly ambiguous
 
 ### Efficiency Guidelines
+
 1. **Batch file reads**: When multiple files need changes, read them in parallel
 2. **Use git for context**: Leverage `git diff` and `git status` instead of re-reading entire files
 3. **Reference files by path**: User provides file paths directly, reducing search tokens
@@ -286,10 +299,12 @@ When the user says:
 6. **Use targeted reads**: For large files, use offset/limit parameters to read specific sections
 
 ### Expected Workflow Patterns
+
 - **Configuration updates**: Update all related config files in one operation
 - **Styling changes**: Update both CSS and components together
 - **Dependency changes**: Update package.json, run install, verify build
 - **Git operations**: Complete all git steps (status, diff, commit) in sequence without prompting
 
 ### Key Principle
+
 **Optimize for throughput over safety**: The user maintains git backups and can easily revert. Prioritize getting work done efficiently over excessive caution or validation.

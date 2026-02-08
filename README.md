@@ -66,6 +66,7 @@ Then open http://localhost:3000 in your web browser.
 ## Working with Multiple Data Files
 
 The application supports loading different dependency graph snapshots with automatic discovery. This is useful for:
+
 - Comparing system states before and after package changes
 - Tracking dependency evolution over time
 - Analyzing different system configurations
@@ -207,6 +208,7 @@ Run `./collect-deps.sh` from the project root to generate a timestamped data fil
 ### Cannot find module 'd3' or other dependencies
 
 Make sure you've run `pnpm install` in the `ui/` directory:
+
 ```bash
 cd ui && pnpm install
 ```
@@ -214,6 +216,7 @@ cd ui && pnpm install
 ### Port 3000 already in use
 
 Kill the process using port 3000 or use a different port:
+
 ```bash
 pnpm dev -- -p 3001
 ```
@@ -221,6 +224,7 @@ pnpm dev -- -p 3001
 ### Browser shows blank page
 
 Check the browser console (F12) for errors. Make sure:
+
 1. The dev server is running (`pnpm dev`)
 2. You're accessing http://localhost:3000 (not a different port)
 3. At least one JSON file exists in `ui/public/data/`
