@@ -10,6 +10,18 @@ export default function PackageDetails({
   node,
   onPackageClick,
 }: Readonly<PackageDetailsProps>) {
+  const packageTypeClass = node.broken
+    ? "bg-red-500 text-white"
+    : node.explicit
+      ? "bg-green-500 text-white"
+      : "bg-blue-500 text-white";
+
+  const packageTypeLabel = node.broken
+    ? "Broken Dependency"
+    : node.explicit
+      ? "Explicitly Installed"
+      : "Dependency";
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100 pr-8 wrap-break-word">
@@ -28,19 +40,9 @@ export default function PackageDetails({
           Package Type
         </strong>
         <span
-          className={`inline-block px-3 py-1.5 rounded text-sm font-medium ${
-            node.broken
-              ? "bg-red-500 text-white"
-              : node.explicit
-                ? "bg-green-500 text-white"
-                : "bg-blue-500 text-white"
-          }`}
+          className={`inline-block px-3 py-1.5 rounded text-sm font-medium ${packageTypeClass}`}
         >
-          {node.broken
-            ? "Broken Dependency"
-            : node.explicit
-              ? "Explicitly Installed"
-              : "Dependency"}
+          {packageTypeLabel}
         </span>
       </div>
       <DependencyList

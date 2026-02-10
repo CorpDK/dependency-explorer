@@ -27,7 +27,9 @@ OPT_REGEX='/\(optional\)/!d; s/^[├└│─ ]+//; s/([^: ]+).+\[unresolvable\]
 
 # Function to log errors
 log_error() {
-  echo "Failed: ${pkg} ($1)" >>"${LOG_FILE}"
+  local reason="$1"
+  echo "Failed: ${pkg} (${reason})" >>"${LOG_FILE}"
+  return 0
 }
 
 # 1. Process Direct Dependencies (Mandatory + Optional)
