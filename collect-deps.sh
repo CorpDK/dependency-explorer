@@ -32,6 +32,8 @@ set -euo pipefail
 # Timing & logging helpers
 #######################################
 SCRIPT_START_TS="$(date +%s%N)"
+readonly TIMESTAMP_FORMAT='+%H:%M:%SZ%z'
+readonly SED_QUOTE_PATTERN='s/.*/"&"/'
 
 now_ns() { date +%s%N; return 0; }
 format_duration() {
@@ -57,7 +59,7 @@ format_duration() {
 log_phase() {
   local message="$1"
   local timestamp
-  timestamp=$(date '+%H:%M:%SZ%z' || true)
+  timestamp=$(date "${TIMESTAMP_FORMAT}" || true)
   printf "[%s] %s\n" "${timestamp}" "${message}"
   return 0
 }
@@ -65,7 +67,7 @@ log_phase() {
 log_error() {
   local message="$1"
   local timestamp
-  timestamp=$(date '+%H:%M:%SZ%z' || true)
+  timestamp=$(date "${TIMESTAMP_FORMAT}" || true)
   printf "[%s] %s\n" "${timestamp}" "${message}" >&2
   return 0
 }
@@ -455,7 +457,7 @@ get_repo() {
 log_phase "Precomputing dependency trees (parallel: ${JOBS} jobs)"
 phase_begin
 printf '%s\n' "${all_packages[@]}" |
-  pv -u shaded -l -s "${package_count}" -N "[$(date '+%H:%M:%SZ%z' || true)] pactree" |
+  pv -u shaded -l -s "${package_count}" -N "[$(date "${TIMESTAMP_FORMAT}" || true)] pactree" |
   xargs -P "${JOBS}" -I{} "${SHELL_NAME}" ./collect-pactree.sh {} "${TMP_DIR}"
 # Check for failures
 if [[ -s "${TMP_DIR}/failures.log" ]]; then
@@ -477,10 +479,10 @@ phase_begin
 MANIFEST="${TMP_DIR}/0_manifest.jsonl"
 for pkg in "${all_packages[@]}"; do
   # 1. Dependency Data (from precomputed pactree files)
-  deps=$(sed 's/.*/"&"/' "${TMP_DIR}/${pkg}.dep" | paste -sd, -)
-  rdeps=$(sed 's/.*/"&"/' "${TMP_DIR}/${pkg}.rdep" | paste -sd, -)
-  odeps=$(sed 's/.*/"&"/' "${TMP_DIR}/${pkg}.odep" | paste -sd, -)
-  ordeps=$(sed 's/.*/"&"/' "${TMP_DIR}/${pkg}.ordep" | paste -sd, -)
+  deps=$(sed "${SED_QUOTE_PATTERN}" "${TMP_DIR}/${pkg}.dep" | paste -sd, -)
+  rdeps=$(sed "${SED_QUOTE_PATTERN}" "${TMP_DIR}/${pkg}.rdep" | paste -sd, -)
+  odeps=$(sed "${SED_QUOTE_PATTERN}" "${TMP_DIR}/${pkg}.odep" | paste -sd, -)
+  ordeps=$(sed "${SED_QUOTE_PATTERN}" "${TMP_DIR}/${pkg}.ordep" | paste -sd, -)
 
   # 2. Repository & Locally Built Logic
   repo=$(get_repo "${pkg}")
@@ -499,7 +501,7 @@ for pkg in "${all_packages[@]}"; do
     "${is_local}" \
     "${URL_CACHE[${pkg}]-}" \
     "${deps-}" "${rdeps-}" "${odeps-}" "${ordeps-}"
-done | pv -u shaded -l -s "${package_count}" -N "[$(date '+%H:%M:%SZ%z' || true)] json-gen" >"${MANIFEST}"
+done | pv -u shaded -l -s "${package_count}" -N "[$(date "${TIMESTAMP_FORMAT}" || true)] json-gen" >"${MANIFEST}"
 phase_end
 
 log_phase "Using jq to finalize JSON structure"
