@@ -6,7 +6,7 @@ if command -v podman &>/dev/null; then
 elif command -v docker &>/dev/null; then
   ENGINE="docker"
 else
-  echo "Error: Neither podman nor docker found."
+  echo "Error: Neither podman nor docker found." >&2
   exit 1
 fi
 
