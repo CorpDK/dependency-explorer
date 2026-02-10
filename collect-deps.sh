@@ -33,7 +33,7 @@ set -euo pipefail
 #######################################
 SCRIPT_START_TS="$(date +%s%N)"
 
-now_ns() { date +%s%N; }
+now_ns() { date +%s%N; return 0; }
 format_duration() {
   local total_ns=$1
   local total_secs
@@ -51,22 +51,27 @@ format_duration() {
   else
     echo "${total_secs}s"
   fi
+  return 0
 }
 
 log_phase() {
+  local message="$1"
   local timestamp
   timestamp=$(date '+%H:%M:%SZ%z' || true)
-  printf "[%s] %s\n" "${timestamp}" "$1"
+  printf "[%s] %s\n" "${timestamp}" "${message}"
+  return 0
 }
 
 log_error() {
+  local message="$1"
   local timestamp
   timestamp=$(date '+%H:%M:%SZ%z' || true)
-  printf "[%s] %s\n" "${timestamp}" "$1" >&2
+  printf "[%s] %s\n" "${timestamp}" "${message}" >&2
+  return 0
 }
 
 PHASE_START=0
-phase_begin() { PHASE_START="$(now_ns)"; }
+phase_begin() { PHASE_START="$(now_ns)"; return 0; }
 phase_end() {
   local end
   end="$(now_ns)"
@@ -74,6 +79,7 @@ phase_end() {
   local duration
   duration=$(format_duration "${dur_ns}")
   log_phase "→ Completed in ${duration}"
+  return 0
 }
 
 #######################################
@@ -440,6 +446,7 @@ get_repo() {
   else
     echo "unknown"
   fi
+  return 0
 }
 
 #######################################
