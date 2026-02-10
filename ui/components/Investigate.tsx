@@ -67,6 +67,50 @@ export default function Investigate({
     return sortPackagesByName(filtered);
   }, [nodes, searchQuery, filterType]);
 
+  // Helper to add forward dependency links
+  const addForwardLinks = (
+    node: PackageNode,
+    treePackageIds: Set<string>,
+    linkSet: Set<string>,
+    subLinks: PackageLink[],
+  ) => {
+    node.depends_on.forEach((dep) => {
+      if (treePackageIds.has(dep)) {
+        const linkKey = `${node.id}->${dep}`;
+        if (!linkSet.has(linkKey)) {
+          linkSet.add(linkKey);
+          subLinks.push({
+            source: node.id,
+            target: dep,
+            type: getLinkType(nodes.find((n) => n.id === dep)!, node),
+          });
+        }
+      }
+    });
+  };
+
+  // Helper to add reverse dependency links
+  const addReverseLinks = (
+    node: PackageNode,
+    treePackageIds: Set<string>,
+    linkSet: Set<string>,
+    subLinks: PackageLink[],
+  ) => {
+    node.required_by.forEach((parent) => {
+      if (treePackageIds.has(parent)) {
+        const linkKey = `${parent}->${node.id}`;
+        if (!linkSet.has(linkKey)) {
+          linkSet.add(linkKey);
+          subLinks.push({
+            source: parent,
+            target: node.id,
+            type: getLinkType(nodes.find((n) => n.id === parent)!, node),
+          });
+        }
+      }
+    });
+  };
+
   // Get the sub-graph for the selected package
   const subGraphData = useMemo(() => {
     if (!selectedPackage) return { nodes: [], links: [] };
@@ -97,35 +141,11 @@ export default function Investigate({
     // Build links based on direction
     subNodes.forEach((node) => {
       if (direction === "forward" || direction === "both") {
-        node.depends_on.forEach((dep) => {
-          if (treePackageIds.has(dep)) {
-            const linkKey = `${node.id}->${dep}`;
-            if (!linkSet.has(linkKey)) {
-              linkSet.add(linkKey);
-              subLinks.push({
-                source: node.id,
-                target: dep,
-                type: getLinkType(nodes.find((n) => n.id === dep)!, node),
-              });
-            }
-          }
-        });
+        addForwardLinks(node, treePackageIds, linkSet, subLinks);
       }
 
       if (direction === "reverse" || direction === "both") {
-        node.required_by.forEach((parent) => {
-          if (treePackageIds.has(parent)) {
-            const linkKey = `${parent}->${node.id}`;
-            if (!linkSet.has(linkKey)) {
-              linkSet.add(linkKey);
-              subLinks.push({
-                source: parent,
-                target: node.id,
-                type: getLinkType(nodes.find((n) => n.id === parent)!, node),
-              });
-            }
-          }
-        });
+        addReverseLinks(node, treePackageIds, linkSet, subLinks);
       }
     });
 
